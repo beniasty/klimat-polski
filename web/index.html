@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Klimat Polski 1951–2025</title>
+    <meta name="description" content="Interaktywna analiza klimatu 18 polskich miast wojewódzkich, 1951–2025: temperatura, upały, mrozy, opady, śnieg, pory roku i rekordy. An interactive look at Poland's changing climate." />
+    <meta property="og:title" content="Klimat Polski 1951–2025" />
+    <meta property="og:description" content="Jak zmieniał się klimat w 18 miastach wojewódzkich: eksplorator danych, mapa, rekordy i pogoda w Twoim dniu." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script>
+      // Apply the saved theme before first paint (avoids a light flash in dark mode).
+      try {
+        var t = localStorage.getItem('klimat-theme')
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t)
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>Ta strona wymaga JavaScriptu. / This site needs JavaScript.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

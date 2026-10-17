@@ -13,3 +13,6 @@ Thumbs.db
 
 # Playwright MCP screenshots
 .playwright-mcp/
+
+# Local working notes
+PROGRESS.md

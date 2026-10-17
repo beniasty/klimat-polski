@@ -22,13 +22,30 @@ END_DATE = "2025-12-31"
 # Reference period used by climatologists (WMO "old normal").
 BASELINE = (1961, 1990)
 
-CITIES = {
+# All 18 voivodeship capitals (two voivodeships have two seats each).
+ALL_CITIES = {
     "Warszawa": (52.23, 21.01),
     "Kraków": (50.06, 19.94),
     "Gdańsk": (54.35, 18.65),
     "Wrocław": (51.11, 17.03),
     "Poznań": (52.41, 16.93),
+    "Łódź": (51.76, 19.46),
+    "Szczecin": (53.43, 14.55),
+    "Bydgoszcz": (53.12, 18.01),
+    "Toruń": (53.01, 18.60),
+    "Lublin": (51.25, 22.57),
+    "Białystok": (53.13, 23.16),
+    "Katowice": (50.26, 19.02),
+    "Kielce": (50.87, 20.63),
+    "Rzeszów": (50.04, 22.00),
+    "Olsztyn": (53.78, 20.49),
+    "Opole": (50.67, 17.93),
+    "Zielona Góra": (51.94, 15.51),
+    "Gorzów Wielkopolski": (52.73, 15.24),
 }
+
+# The five cities analysed in the notebook and the static report.
+CITIES = {c: ALL_CITIES[c] for c in ["Warszawa", "Kraków", "Gdańsk", "Wrocław", "Poznań"]}
 
 API_URL = "https://archive-api.open-meteo.com/v1/archive"
 DAILY_VARS = [
@@ -60,50 +77,54 @@ SUMMER_T = 15.0  # smoothed tmean > 15 °C -> thermal summer
 def slug(city: str) -> str:
     """'Gdańsk' -> 'gdansk' (ASCII file name)."""
     table = str.maketrans("ąćęłńóśźżĄĆĘŁŃÓŚŹŻ", "acelnoszzACELNOSZZ")
-    return city.translate(table).lower()
+    return city.translate(table).lower().replace(" ", "-")
 
 
 def raw_path(city: str) -> Path:
     return RAW_DIR / f"{slug(city)}.csv"
 
 
-def fetch_city(city: str, force: bool = False) -> Path:
-    """Download daily data for one city, unless the CSV is already cached."""
-    path = raw_path(city)
-    if path.exists() and not force:
-        return path
-
-    lat, lon = CITIES[city]
+def download_daily(lat: float, lon: float, start: str, end: str) -> pd.DataFrame:
+    """One request to the archive API, retrying when rate-limited."""
     params = {
         "latitude": lat,
         "longitude": lon,
-        "start_date": START_DATE,
-        "end_date": END_DATE,
+        "start_date": start,
+        "end_date": end,
         "daily": ",".join(DAILY_VARS),
         "timezone": "Europe/Warsaw",
     }
-    for attempt in range(4):
-        resp = requests.get(API_URL, params=params, timeout=120)
-        if resp.status_code == 429:  # rate limited: wait and retry
-            time.sleep(30 * (attempt + 1))
+    for attempt in range(200):
+        resp = requests.get(API_URL, params=params, timeout=180)
+        if resp.status_code == 429:  # rate limited: wait for the limit window to reset
+            reason = resp.json().get("reason", "")
+            wait = 600 if "Hourly" in reason else 1800 if "Daily" in reason else 65
+            print(f"  limit API ({reason[:40]}...), czekam {wait // 60} min", flush=True)
+            time.sleep(wait)
             continue
         resp.raise_for_status()
-        break
-    else:
-        raise RuntimeError(f"Open-Meteo kept rate-limiting the request for {city}")
+        return pd.DataFrame(resp.json()["daily"])
+    raise RuntimeError("Open-Meteo kept rate-limiting the request")
 
-    daily = pd.DataFrame(resp.json()["daily"])
+
+def fetch_city(city: str, force: bool = False) -> Path:
+    """Download 1951–2025 daily data for one city, unless the CSV is already cached."""
+    path = raw_path(city)
+    if path.exists() and not force:
+        return path
+    lat, lon = ALL_CITIES[city]
+    daily = download_daily(lat, lon, START_DATE, END_DATE)
     path.parent.mkdir(parents=True, exist_ok=True)
     daily.to_csv(path, index=False)
     return path
 
 
-def fetch_all(force: bool = False) -> list[Path]:
+def fetch_all(force: bool = False, cities: dict | None = None) -> list[Path]:
     paths = []
-    for city in CITIES:
+    for city in cities or CITIES:
         cached = raw_path(city).exists() and not force
         paths.append(fetch_city(city, force=force))
-        print(f"{city:10s} {'(z cache)' if cached else '(pobrano)'} -> {paths[-1].name}")
+        print(f"{city:20s} {'(z cache)' if cached else '(pobrano)'} -> {paths[-1].name}")
         if not cached:
             time.sleep(2)  # be polite to the free API
     return paths

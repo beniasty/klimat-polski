@@ -1,48 +1,80 @@
-# Pogoda i klimat w Polsce 1951–2025
+# Poland’s Climate 1951–2025 · Klimat Polski
 
-Pierwsza analiza danych w Pythonie: jak zmieniały się temperatura, upały, mrozy, opady
-i długość zimy w pięciu miastach (Warszawa, Kraków, Gdańsk, Wrocław, Poznań).
+How has the climate changed in Poland’s regional capitals over the last 75 years?
+An interactive website plus a step-by-step data analysis in Python.
 
-**Najważniejsze wyniki** (średnia z 5 miast, lata 2016–2025 wobec normy 1961–1990):
-- średnia roczna temperatura: 8,1 °C → 10,3 °C (+0,34 °C na dekadę, od 1981 r. +0,49 °C),
-- dni upalne (Tmax ≥ 30 °C): 1,4 → 8,4 w roku,
-- dni mroźne (Tmax < 0 °C): 39 → 14,
-- zima termiczna: 66 → 29 dni, lato termiczne: 96 → 124 dni,
-- roczna suma opadów bez wyraźnego trendu, dni ze śniegiem: 21 → 13.
+**Live site:** https://beniasty.github.io/klimat-polski/ (Polish / English)
 
-## Co jest w środku
+Key findings (mean of the cities, 2016–2025 vs the 1961–1990 normal):
 
-| ścieżka | co to |
+- the mean annual temperature rose by about **2 °C** (about +0.34 °C per decade, faster since 1981),
+- hot days (≥ 30 °C) went from about 1 to 8 a year; ice days (below 0 °C all day) fell from about 41 to 16,
+- thermal winter shrank by roughly half; spring starts about two weeks earlier,
+- annual precipitation shows no clear trend, but there is less snow.
+
+## What the website offers
+
+| Tab | What you can do |
 |---|---|
-| `notebooks/analiza.ipynb` | notebook krok po kroku: pobranie → czyszczenie → analiza → wykresy → wnioski |
-| `report/index.html` | gotowy raport (jeden plik, działa bez serwera i bez internetu) |
-| `src/pogoda.py` | pobieranie danych z cache i liczenie wskaźników |
-| `src/charts.py` | wykresy plotly (wspólne dla notebooka i raportu) |
-| `scripts/build_report.py` | generuje `report/index.html` |
-| `data/raw/*.csv` | surowe dane dzienne z API (zapisane, żeby nie pobierać ich ponownie) |
+| Overview | Warming stripes for Poland or any city, key changes, warming map |
+| Explorer | Up to 5 cities, 25 measures, any year range, season or month, custom thresholds, trend lines, table and CSV |
+| Map & ranking | All cities on a map, coloured by change, trend or mean; sortable ranking |
+| Compare periods | Two periods side by side: temperature distribution and the year day by day |
+| Nature calendar | Start of spring and summer, last and first frosts, frost-free period, growing season |
+| Records | Hottest, coldest and wettest days, warmest and coldest years, month × year heat map |
+| Your day | The weather on any date since 1951 and how the climate changed since you were born |
+| About | Data sources and method |
 
-## Jak uruchomić
+Every view is stored in the URL, so links can be shared. Light and dark themes, works on phones.
 
-Wymagany [uv](https://docs.astral.sh/uv/).
+## Repository layout
+
+| Path | Contents |
+|---|---|
+| `web/` | Website: Vite + React + TypeScript, Plotly charts, Vitest tests |
+| `web/src/lib/metrics.ts` | All climate indicators (tested in `metrics.test.ts`) |
+| `web/scripts/build-summary.ts` | Pre-computes `summary.json` with the same code the browser uses |
+| `web/public/data/` | Data served by the site (daily series per city, summary, map) |
+| `scripts/` | Python: download data, export JSON for the site, build the static report |
+| `notebooks/analiza.ipynb` | Step-by-step analysis notebook (in Polish) |
+| `report/index.html` | Static one-page report (in Polish) |
+| `data/raw/` | Raw daily data from the API (cached) |
+
+## Running it
+
+Requirements: [uv](https://docs.astral.sh/uv/) (Python) and Node.js 24.
 
 ```bash
-uv sync                                    # instaluje zależności do .venv
-uv run jupyter lab                         # otwiera notebook w przeglądarce
-uv run python scripts/build_report.py      # odświeża raport HTML
-uv run jupyter nbconvert --to notebook --execute --inplace notebooks/analiza.ipynb  # wykonuje cały notebook
+# website
+cd web
+npm install
+npm run dev          # http://localhost:5173
+npm test             # unit tests for the indicators
+npm run build        # production build in web/dist
+
+# data (only needed to refresh it)
+uv run python scripts/fetch_all_cities.py      # 1951–2025, cached in data/raw/
+uv run python scripts/export_web_data.py --refresh-recent
+cd web && npm run summary
 ```
 
-Raport otwierasz podwójnym kliknięciem `report/index.html`.
-Dane pobierają się tylko wtedy, gdy brakuje plików w `data/raw/`. Żeby pobrać je od nowa, usuń te pliki
-albo wywołaj `pogoda.fetch_all(force=True)`.
+The free Open-Meteo API counts a 75-year request as many calls, so downloading all
+cities takes a while; the script waits for rate limits and can be re-run safely.
 
-## Dane i metoda
+## Data and method
 
-- Źródło: [Open-Meteo Historical Weather API](https://open-meteo.com/en/docs/historical-weather-api)
-  (reanaliza ERA5, licencja CC BY 4.0), dane dzienne 1951-01-01 – 2025-12-31.
-- Reanaliza to model dopasowany do historycznych pomiarów, a nie odczyt ze stacji IMGW,
-  więc wartości są lekko wygładzone. Opady są mniej pewne niż temperatura.
-- Norma: średnia 1961–1990. Trend: prosta najmniejszych kwadratów (`numpy.polyfit`).
-- Zima/lato termiczne: dni ze średnią dobową (wygładzoną 7-dniową średnią kroczącą) < 0 °C / > 15 °C.
+- Daily data from the [Open-Meteo Historical Weather API](https://open-meteo.com/en/docs/historical-weather-api)
+  (ERA5 / ERA5-Land reanalysis, CC BY 4.0). A reanalysis is a weather model fitted to observations:
+  complete and consistent, but smoother than a single station (especially for precipitation).
+- One grid point per city; “Poland” is the mean of the cities.
+- Normal: 1961–1990. Trends: least-squares lines, per decade.
+- Thermal seasons use a 7-day smoothed daily mean: winter < 0 °C, summer > 15 °C, growing season ≥ 5 °C.
+- Map outline: [Natural Earth](https://www.naturalearthdata.com/) (public domain).
 
-Narzędzia: Python 3.14, uv, pandas, plotly, Jupyter.
+## License
+
+Code: [MIT](LICENSE). Data: Open-Meteo, CC BY 4.0.
+
+---
+
+**Po polsku:** opis analizy i notebooka jest w [README.pl.md](README.pl.md).
