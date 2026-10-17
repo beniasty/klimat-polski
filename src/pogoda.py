@@ -95,9 +95,17 @@ def download_daily(lat: float, lon: float, start: str, end: str) -> pd.DataFrame
         "timezone": "Europe/Warsaw",
     }
     for attempt in range(200):
-        resp = requests.get(API_URL, params=params, timeout=180)
+        try:
+            resp = requests.get(API_URL, params=params, timeout=180)
+        except requests.RequestException as e:  # network hiccup: wait and retry
+            print(f"  błąd sieci ({type(e).__name__}), ponawiam za minutę", flush=True)
+            time.sleep(60)
+            continue
         if resp.status_code == 429:  # rate limited: wait for the limit window to reset
-            reason = resp.json().get("reason", "")
+            try:
+                reason = resp.json().get("reason", "")
+            except ValueError:
+                reason = resp.text
             wait = 600 if "Hourly" in reason else 1800 if "Daily" in reason else 65
             print(f"  limit API ({reason[:40]}...), czekam {wait // 60} min", flush=True)
             time.sleep(wait)
