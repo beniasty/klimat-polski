@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useI18n, type Key } from '../lib/i18n.tsx'
 import { param, useRoute } from '../lib/router.ts'
 import { loadMeta, useAsync, useSeries, type Meta } from '../lib/data.ts'
-import { aggregate, linearTrend, meanBetween, METRIC_BY_ID, type Period, type Series, type YearValue } from '../lib/metrics.ts'
+import { aggregate, isPeriod, linearTrend, meanBetween, METRIC_BY_ID, type Period, type Series, type YearValue } from '../lib/metrics.ts'
 import { monthNames, num, withUnit } from '../lib/format.ts'
 import { useTokens } from '../lib/theme.ts'
 import { yAxisFor, yearlyTraces } from '../lib/chartHelpers.ts'
@@ -40,12 +40,13 @@ function Content({ meta }: { meta: Meta }) {
   const metricId = METRIC_BY_ID[params.get('m') ?? ''] ? params.get('m')! : 'tmean'
   const metric = METRIC_BY_ID[metricId]
   const seasonalMetric = metric.kind === 'seasonal'
-  const period = (seasonalMetric ? 'year' : param.str(params, 'p', 'year')) as Period
+  const pParam = params.get('p')
+  const period: Period = seasonalMetric || !isPeriod(pParam) ? 'year' : pParam
   const thrParam = params.get('t')
   const threshold = thrParam !== null && Number.isFinite(Number(thrParam)) ? Number(thrParam) : null
   const [y0, y1] = meta.fullYears
   const range = param.range(params, 'y', [y0, y1])
-  const view = param.str(params, 'v', 'values') as 'values' | 'anomaly'
+  const view = params.get('v') === 'anomaly' ? 'anomaly' : 'values'
   const showRolling = param.str(params, 'r', '1') === '1'
   const showTrend = param.str(params, 'tr', '0') === '1'
 

@@ -81,6 +81,10 @@ const SEASON_MONTHS: Record<Season, number[]> = {
   SON: [9, 10, 11],
 }
 
+/** Guards values read from the URL. */
+export const isPeriod = (s: string | null): s is Period =>
+  s === 'year' || (SEASONS as string[]).includes(s ?? '') || /^m([1-9]|1[0-2])$/.test(s ?? '')
+
 const isLeap = (y: number) => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0
 export const daysInMonth = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate()
 

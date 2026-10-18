@@ -207,3 +207,11 @@ describe('daily lookups', () => {
     expect(a.get(1951)![11]).toBeCloseTo(-4.5)
   })
 })
+
+describe('isPeriod', () => {
+  it('accepts valid periods and rejects anything else from the URL', async () => {
+    const { isPeriod } = await import('./metrics.ts')
+    for (const ok of ['year', 'DJF', 'SON', 'm1', 'm12']) expect(isPeriod(ok)).toBe(true)
+    for (const bad of [null, '', 'm0', 'm13', 'mx', 'winter', 'm1<script>']) expect(isPeriod(bad)).toBe(false)
+  })
+})

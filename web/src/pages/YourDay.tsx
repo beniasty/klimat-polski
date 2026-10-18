@@ -36,7 +36,11 @@ function Content({ meta, summary }: { meta: Meta; summary: Summary }) {
   const { t } = useI18n()
   const { params, setParams } = useRoute()
   const city = meta.cities.some((c) => c.id === params.get('c')) ? params.get('c')! : 'warszawa'
-  const date = /^\d{4}-\d{2}-\d{2}$/.test(params.get('d') ?? '') ? params.get('d')! : meta.lastDate
+  const dParam = params.get('d') ?? ''
+  // Real calendar date only (rejects e.g. 2026-99-99 or 2026-02-30).
+  const parsed = Date.parse(dParam + 'T00:00:00Z')
+  const validDate = /^\d{4}-\d{2}-\d{2}$/.test(dParam) && Number.isFinite(parsed) && new Date(parsed).toISOString().startsWith(dParam)
+  const date = validDate ? dParam : meta.lastDate
   const birth = param.num(params, 'b', 1990)
   const series = useSeries([city])
   const cityName = meta.cities.find((c) => c.id === city)!.name

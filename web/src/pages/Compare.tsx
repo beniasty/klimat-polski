@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useI18n, type Key } from '../lib/i18n.tsx'
 import { param, useRoute } from '../lib/router.ts'
 import { loadMeta, useAsync, useSeries, type Meta } from '../lib/data.ts'
-import { annualCycle, valuesIn, type Field as F, type Period, type Series } from '../lib/metrics.ts'
+import { annualCycle, isPeriod, valuesIn, type Field as F, type Period, type Series } from '../lib/metrics.ts'
 import { num } from '../lib/format.ts'
 import { useTokens } from '../lib/theme.ts'
 import { monthAxis } from '../lib/chartHelpers.ts'
@@ -37,7 +37,8 @@ function Content({ meta }: { meta: Meta }) {
   const { params, setParams } = useRoute()
   const city = meta.cities.some((c) => c.id === params.get('c')) ? params.get('c')! : 'warszawa'
   const field = (FIELDS.includes(params.get('f') as F) ? params.get('f') : 'tmax') as F
-  const period = param.str(params, 'p', 'year') as Period
+  const pParam = params.get('p')
+  const period: Period = isPeriod(pParam) ? pParam : 'year'
   const [y0, y1] = meta.fullYears
   const a = param.range(params, 'a', [1961, 1990])
   const b = param.range(params, 'b', [2016, 2025])

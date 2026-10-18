@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useI18n, type Key } from '../lib/i18n.tsx'
-import { href, param, useRoute } from '../lib/router.ts'
+import { href, useRoute } from '../lib/router.ts'
 import { loadMeta, loadSummary, rangeMean, summarySeries, useAsync, type Meta, type Summary } from '../lib/data.ts'
 import { METRIC_BY_ID } from '../lib/metrics.ts'
 import { binSequential, RAMPS } from '../lib/colors.ts'
@@ -27,7 +27,7 @@ export default function Overview() {
 function Content({ meta, summary }: { meta: Meta; summary: Summary }) {
   const { t, lang } = useI18n()
   const { params, setParams } = useRoute()
-  const city = param.str(params, 'c', 'pl')
+  const city = meta.cities.some((c) => c.id === params.get('c')) ? params.get('c')! : 'pl'
   const cityName = city === 'pl' ? t('ui.poland', { n: meta.cities.length }) : (meta.cities.find((c) => c.id === city)?.name ?? city)
 
   const tmean = summarySeries(summary, city, 'tmean')

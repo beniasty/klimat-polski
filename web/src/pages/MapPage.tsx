@@ -41,7 +41,8 @@ function Content({ meta, summary }: { meta: Meta; summary: Summary }) {
   const { params, setParams } = useRoute()
   const metricId = METRIC_BY_ID[params.get('m') ?? ''] ? params.get('m')! : 'tmean'
   const metric = METRIC_BY_ID[metricId]
-  const stat = param.str(params, 's', 'change') as Stat
+  const sParam = params.get('s')
+  const stat: Stat = sParam === 'mean' || sParam === 'trend' ? sParam : 'change'
   const seasonParam = params.get('p')
   const season = SEASONAL_KEYS.has(metricId) && SEASONS.includes(seasonParam as Season) ? (seasonParam as Season) : null
   const key = season ? `${metricId}_${season}` : metricId
