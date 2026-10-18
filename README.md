@@ -8,7 +8,7 @@ An interactive website plus a step-by-step data analysis in Python.
 Key findings (mean of the cities, 2016–2025 vs the 1961–1990 normal):
 
 - the mean annual temperature rose by about **2 °C** (about +0.34 °C per decade, faster since 1981),
-- hot days (≥ 30 °C) went from about 1 to 8 a year; ice days (below 0 °C all day) fell from about 41 to 16,
+- hot days (≥ 30 °C) went from about 1 to 8 a year; ice days (below 0 °C all day) fell from about 41 to 17,
 - thermal winter shrank by roughly half; spring starts about two weeks earlier,
 - annual precipitation shows no clear trend, but there is less snow.
 

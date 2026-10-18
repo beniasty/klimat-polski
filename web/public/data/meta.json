@@ -1,7 +1,7 @@
 {
- "generated": "2026-10-17",
+ "generated": "2026-10-18",
  "firstDate": "1951-01-01",
- "lastDate": "2025-12-31",
+ "lastDate": "2026-10-17",
  "fullYears": [
   1951,
   2025
@@ -98,6 +98,62 @@
    "lon": 23.16,
    "x": 565.3,
    "y": 185.8
+  },
+  {
+   "id": "katowice",
+   "name": "Katowice",
+   "lat": 50.26,
+   "lon": 19.02,
+   "x": 310.4,
+   "y": 472.8
+  },
+  {
+   "id": "kielce",
+   "name": "Kielce",
+   "lat": 50.87,
+   "lon": 20.63,
+   "x": 409.5,
+   "y": 411.8
+  },
+  {
+   "id": "rzeszow",
+   "name": "Rzeszów",
+   "lat": 50.04,
+   "lon": 22.0,
+   "x": 493.8,
+   "y": 494.8
+  },
+  {
+   "id": "olsztyn",
+   "name": "Olsztyn",
+   "lat": 53.78,
+   "lon": 20.49,
+   "x": 400.9,
+   "y": 120.8
+  },
+  {
+   "id": "opole",
+   "name": "Opole",
+   "lat": 50.67,
+   "lon": 17.93,
+   "x": 243.3,
+   "y": 431.8
+  },
+  {
+   "id": "zielona-gora",
+   "name": "Zielona Góra",
+   "lat": 51.94,
+   "lon": 15.51,
+   "x": 94.3,
+   "y": 304.8
+  },
+  {
+   "id": "gorzow-wielkopolski",
+   "name": "Gorzów Wielkopolski",
+   "lat": 52.73,
+   "lon": 15.24,
+   "x": 77.7,
+   "y": 225.8
   }
  ],
  "map": {
