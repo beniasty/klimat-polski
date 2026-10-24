@@ -23,6 +23,7 @@ export default function About() {
             <p>
               {t('about.author')}: <a href="https://beniasty.github.io">Paweł Bęben</a>
             </p>
+            <p>{t('about.privacy')}</p>
           </div>
         </Card>
         <Card title={lang === 'pl' ? 'Miasta' : 'Cities'}>

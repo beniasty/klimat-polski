@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { I18nProvider } from './lib/i18n.tsx'
+import { startAnalytics } from './lib/analytics.ts'
+
+startAnalytics()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -233,6 +233,7 @@ const pl = {
   ],
   'about.links': 'Kod źródłowy, notebook z analizą krok po kroku i surowe dane',
   'about.author': 'Autor',
+  'about.privacy': 'Odwiedziny liczymy anonimowo przez GoatCounter: bez cookies i bez danych osobowych.',
 } as const
 
 export type Key = keyof typeof pl
@@ -452,6 +453,7 @@ const en: Dict = {
   ],
   'about.links': 'Source code, a step-by-step analysis notebook and the raw data',
   'about.author': 'Author',
+  'about.privacy': 'Visits are counted anonymously with GoatCounter: no cookies and no personal data.',
 }
 
 const DICTS = { pl, en } as Record<Lang, Dict>
