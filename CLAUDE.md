@@ -34,7 +34,7 @@ uv run python scripts/build_report.py                  # report/index.html (self
 
 1. `src/pogoda.py` is the Python core: city list (`ALL_CITIES`; `CITIES` is the 5-city subset used by the notebook/report), date range, baseline 1961–1990, thresholds, download/clean/yearly/trend helpers. `src/charts.py` builds Plotly figures for the report.
 2. `scripts/export_web_data.py` writes `web/public/data/daily/<id>.json` (values ×10 as integers, `null` = missing, plus `start` date) and `meta.json` (cities with projected x/y, Poland outline as an SVG path from Natural Earth geojson in `data/raw/geo/`, date range, `fullYears`, `baseline`). Recent data (2026-01-01 → yesterday) is cached separately in `data/raw/recent/`.
-3. `web/scripts/build-summary.ts` (run directly by Node 24, no build step) imports `web/src/lib/metrics.ts` and writes `summary.json` with yearly values per city per metric and seasonal tmean/precip. The browser and the summary share the same code, so numbers always match — change indicators in `metrics.ts` only, then rerun `npm run summary`.
+3. `web/scripts/build-summary.ts` (run directly by Node 24, no build step) imports `web/src/lib/metrics.ts` and writes `summary.json` with yearly values per city per metric and seasonal tmean/precip. The browser and the summary share the same code, so numbers always match — change indicators in `metrics.ts` only, then rerun `npm run summary`. The same npm script then runs `web/scripts/build-og.ts`, which draws the share image `public/og.png` (Poland's warming stripes) from `summary.json`.
 
 ## Website architecture
 

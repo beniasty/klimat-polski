@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "summary": "node scripts/build-summary.ts",
+    "summary": "node scripts/build-summary.ts && node scripts/build-og.ts",
     "test": "vitest run",
     "data": "cd .. && uv run python scripts/export_web_data.py && cd web && npm run summary"
   },
