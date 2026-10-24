@@ -256,6 +256,8 @@ const pl = {
   ],
   'about.links': 'Kod źródłowy, notebook z analizą krok po kroku i surowe dane',
   'about.author': 'Autor',
+  'about.donate': 'Strona jest darmowa i bez reklam. Jeśli Ci się przydała, możesz postawić autorowi kawę',
+  'ui.donate': 'Postaw kawę',
   'about.privacy': 'Odwiedziny liczymy anonimowo przez GoatCounter: bez cookies i bez danych osobowych.',
 } as const
 
@@ -499,6 +501,8 @@ const en: Dict = {
   ],
   'about.links': 'Source code, a step-by-step analysis notebook and the raw data',
   'about.author': 'Author',
+  'about.donate': 'The site is free and has no ads. If you found it useful, you can buy the author a coffee',
+  'ui.donate': 'Buy me a coffee',
   'about.privacy': 'Visits are counted anonymously with GoatCounter: no cookies and no personal data.',
 }
 

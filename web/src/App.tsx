@@ -111,7 +111,8 @@ export default function App() {
       <footer className="site-footer">
         <p>
           {lang === 'pl' ? 'Dane' : 'Data'}: <a href="https://open-meteo.com/">Open-Meteo</a> (ERA5, CC BY 4.0) ·{' '}
-          <a href="https://github.com/beniasty/klimat-polski">GitHub</a> · <a href="https://beniasty.github.io">Paweł Bęben</a>
+          <a href="https://github.com/beniasty/klimat-polski">GitHub</a> · <a href="https://beniasty.github.io">Paweł Bęben</a> ·{' '}
+          <a href="https://buycoffee.to/beniasty">{t('ui.donate')}</a>
         </p>
       </footer>
     </>
