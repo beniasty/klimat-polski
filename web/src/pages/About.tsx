@@ -23,6 +23,9 @@ export default function About() {
             <p>
               {t('about.author')}: <a href="https://beniasty.github.io">Paweł Bęben</a>
             </p>
+            <p>
+              {t('about.donate')}: <a href="https://buycoffee.to/beniasty">buycoffee.to/beniasty</a>
+            </p>
             <p>{t('about.privacy')}</p>
           </div>
         </Card>
