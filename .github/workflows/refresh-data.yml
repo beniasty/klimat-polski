@@ -61,7 +61,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
-          git add data/raw/recent web/public/data
+          git add data/raw/recent web/public/data web/public/og.png
           git commit -m "$title"
           git push origin "$branch"
           gh pr create --base master --head "$branch" --title "$title" --body "Automatic weekly refresh: daily data now ends on $after (was $BEFORE). Tests and build passed in the workflow run. Merging deploys the site."
