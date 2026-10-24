@@ -30,7 +30,7 @@ export function monthNames(lang: Lang, style: 'short' | 'long' = 'short'): strin
 }
 
 export function unitLabel(unit: Unit, lang: Lang): string {
-  return { C: '°C', mm: 'mm', cm: 'cm', days: lang === 'pl' ? 'dni' : 'days', doy: '', dd: '°C·d' }[unit]
+  return { C: '°C', mm: 'mm', cm: 'cm', days: lang === 'pl' ? 'dni' : 'days', doy: '', dd: '°C·d', h: 'h' }[unit]
 }
 
 /** Value with unit, digits chosen by unit. */

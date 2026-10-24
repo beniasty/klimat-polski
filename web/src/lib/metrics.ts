@@ -5,8 +5,9 @@
  * scripts/build-summary.ts (pre-computed summary for the map and rankings).
  */
 
-export type Field = 'tmax' | 'tmin' | 'tmean' | 'precip' | 'snow'
-export const FIELDS: Field[] = ['tmax', 'tmin', 'tmean', 'precip', 'snow']
+/** et0 = reference evapotranspiration (mm), sun = sunshine duration (hours). */
+export type Field = 'tmax' | 'tmin' | 'tmean' | 'precip' | 'snow' | 'et0' | 'sun'
+export const FIELDS: Field[] = ['tmax', 'tmin', 'tmean', 'precip', 'snow', 'et0', 'sun']
 
 /** Daily data as stored in public/data/daily/<id>.json (values ×10, null = missing). */
 export interface RawDaily extends Record<Field, (number | null)[]> {
@@ -15,6 +16,8 @@ export interface RawDaily extends Record<Field, (number | null)[]> {
 }
 
 export interface Series extends Record<Field, Float64Array> {
+  /** Climatic water balance: precip − et0 (mm). */
+  wb: Float64Array
   id: string
   n: number
   startMs: number
@@ -44,11 +47,12 @@ export function decode(raw: RawDaily): Series {
     doy: new Int16Array(n),
   } as Series
   for (const f of FIELDS) {
-    const src = raw[f]
+    const src = raw[f] ?? [] // older files may lack the newer fields
     const out = new Float64Array(n)
-    for (let i = 0; i < n; i++) out[i] = src[i] === null ? NaN : src[i]! / 10
+    for (let i = 0; i < n; i++) out[i] = src[i] == null ? NaN : src[i]! / 10
     s[f] = out
   }
+  s.wb = s.precip.map((p, i) => p - s.et0[i])
   for (let i = 0; i < n; i++) {
     const d = new Date(startMs + i * DAY_MS)
     const y = d.getUTCFullYear()
@@ -107,15 +111,15 @@ function expectedDays(period: Period, y: number, months: number[]): number {
 
 // --- metric registry ------------------------------------------------------------
 
-export type Unit = 'C' | 'mm' | 'cm' | 'days' | 'doy' | 'dd'
+export type Unit = 'C' | 'mm' | 'cm' | 'days' | 'doy' | 'dd' | 'h'
 type Op = '>=' | '>' | '<' | '<='
-export type MetricGroup = 'temp' | 'heat' | 'cold' | 'precip' | 'energy' | 'seasons'
+export type MetricGroup = 'temp' | 'heat' | 'cold' | 'precip' | 'water' | 'energy' | 'seasons'
 
 interface DailyMetric {
   kind: 'daily'
   id: string
   group: MetricGroup
-  field: Field
+  field: Field | 'wb'
   /** hdd/cdd: degree days; longest: longest run of days meeting op/threshold; spells: runs of at least minRun days. */
   agg: 'mean' | 'sum' | 'count' | 'max' | 'min' | 'hdd' | 'cdd' | 'longest' | 'spells'
   unit: Unit
@@ -155,6 +159,9 @@ export const METRICS: Metric[] = [
   { kind: 'daily', id: 'dry_spell_max', group: 'precip', field: 'precip', agg: 'longest', op: '<', threshold: 1, unit: 'days', hue: 'warm' },
   { kind: 'daily', id: 'snow', group: 'precip', field: 'snow', agg: 'sum', unit: 'cm', hue: 'cold' },
   { kind: 'daily', id: 'snow_days', group: 'precip', field: 'snow', agg: 'count', op: '>=', threshold: 1, unit: 'days', hue: 'cold' },
+  { kind: 'daily', id: 'et0', group: 'water', field: 'et0', agg: 'sum', unit: 'mm', hue: 'warm' },
+  { kind: 'daily', id: 'water_balance', group: 'water', field: 'wb', agg: 'sum', unit: 'mm', hue: 'wet' },
+  { kind: 'daily', id: 'sunshine', group: 'water', field: 'sun', agg: 'sum', unit: 'h', hue: 'warm' },
   { kind: 'daily', id: 'hdd', group: 'energy', field: 'tmean', agg: 'hdd', unit: 'dd', hue: 'cold' },
   { kind: 'daily', id: 'cdd', group: 'energy', field: 'tmean', agg: 'cdd', unit: 'dd', hue: 'warm' },
   { kind: 'seasonal', id: 'winter_days', group: 'seasons', unit: 'days', hue: 'cold' },

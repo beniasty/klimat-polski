@@ -24,7 +24,7 @@ import pogoda  # noqa: E402
 OUT = pogoda.PROJECT_ROOT / "web" / "public" / "data"
 RECENT_DIR = pogoda.RAW_DIR / "recent"
 GEO_FILE = pogoda.RAW_DIR / "geo" / "ne_50m_admin_0_countries.geojson"
-FIELDS = ["tmax", "tmin", "tmean", "precip", "snow"]
+FIELDS = ["tmax", "tmin", "tmean", "precip", "snow", "et0", "sun"]
 
 # Map projection: equirectangular, x scaled by cos(52°) so Poland keeps its shape.
 LAT0 = 52.0
@@ -44,7 +44,7 @@ def fetch_recent(city: str, refresh: bool, skip: bool = False) -> pd.DataFrame:
     if refresh or not path.exists():
         lat, lon = pogoda.ALL_CITIES[city]
         end = (date.today() - timedelta(days=1)).isoformat()
-        df = pogoda.download_daily(lat, lon, "2026-01-01", end)
+        df = pogoda.download_daily(lat, lon, "2026-01-01", end, pogoda.DAILY_VARS + pogoda.EXTRA_VARS)
         df = df.dropna(subset=["temperature_2m_mean"])  # newest days are not published yet
         path.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(path, index=False)
@@ -82,9 +82,15 @@ def main(refresh: bool, no_recent: bool = False) -> None:
             print(f"{city:20s} POMINIĘTO: brak data/raw (uruchom scripts/fetch_all_cities.py)")
             continue
         base = pd.read_csv(pogoda.raw_path(city))
+        if pogoda.extra_path(city).exists():
+            base = base.merge(pd.read_csv(pogoda.extra_path(city)), on="time", how="left")
         recent = fetch_recent(city, refresh, skip=no_recent)
         df = pd.concat([base, recent]).drop_duplicates("time").sort_values("time")
         df = df.rename(columns=pogoda.RENAME)
+        for f in ("et0", "sun"):
+            if f not in df:
+                df[f] = float("nan")
+        df["sun"] = df["sun"] / 3600  # seconds -> hours
         dates = pd.to_datetime(df["date"])
         expected = pd.date_range(dates.iloc[0], dates.iloc[-1], freq="D")
         assert len(expected) == len(df), f"{city}: gaps in the daily series"
