@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Poland's climate 1951–2025 (+ 2026 to date) for 18 regional capitals: a Python analysis (pandas, Jupyter, static report) and an interactive website in `web/` (Vite + React 19 + TypeScript, Plotly). Live site: https://beniasty.github.io/klimat-polski/ — deployed by `.github/workflows/deploy.yml` on every push to `master` (runs `npm ci`, `npm test`, `npm run build`, publishes `web/dist`).
+Poland's climate 1951–2025 (+ 2026 to date) for 18 regional capitals: a Python analysis (pandas, Jupyter, static report) and an interactive website in `web/` (Vite + React 19 + TypeScript, Plotly). Live site: https://beniasty.github.io/klimat-polski/ — deployed by `.github/workflows/deploy.yml` on every push to `master` (runs `npm ci`, `npm test`, `npm run build`, publishes `web/dist`). `.github/workflows/refresh-data.yml` refreshes the 2026 data every Friday and opens a PR when new days arrive.
 
 ## Commands
 
