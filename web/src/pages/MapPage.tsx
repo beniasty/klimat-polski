@@ -67,7 +67,9 @@ function Content({ meta, summary }: { meta: Meta; summary: Summary }) {
   const values = Object.fromEntries(rows.map((r) => [r.id, Number.isFinite(r.value) ? r.value : null]))
   const scale = stat === 'mean' ? binSequential(rows.map((r) => r.value), RAMPS[metric.hue]) : binDiverging(rows.map((r) => r.value))
   const signed = stat !== 'mean'
-  const digits = stat === 'trend' ? (metric.unit === 'C' ? 2 : 1) : undefined
+  // Rare events (e.g. heatwaves: ~1 a year) need a decimal, or every city shows 0 or 1.
+  const small = rows.every((r) => !Number.isFinite(r.value) || Math.abs(r.value) < 10)
+  const digits = stat === 'trend' ? (metric.unit === 'C' ? 2 : 1) : small && metric.unit !== 'doy' ? 1 : undefined
   // Map labels: numbers only (the legend carries the unit); dates stay as dates.
   const fmt = (v: number | null) =>
     valueUnit === 'doy' ? withUnit(lang, v, 'doy') : num(lang, v, digits ?? (metric.unit === 'C' ? 1 : 0), signed) + (valueUnit === 'C' ? '°' : '')

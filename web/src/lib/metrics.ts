@@ -107,19 +107,21 @@ function expectedDays(period: Period, y: number, months: number[]): number {
 
 // --- metric registry ------------------------------------------------------------
 
-export type Unit = 'C' | 'mm' | 'cm' | 'days' | 'doy'
+export type Unit = 'C' | 'mm' | 'cm' | 'days' | 'doy' | 'dd'
 type Op = '>=' | '>' | '<' | '<='
-export type MetricGroup = 'temp' | 'heat' | 'cold' | 'precip' | 'seasons'
+export type MetricGroup = 'temp' | 'heat' | 'cold' | 'precip' | 'energy' | 'seasons'
 
 interface DailyMetric {
   kind: 'daily'
   id: string
   group: MetricGroup
   field: Field
-  agg: 'mean' | 'sum' | 'count' | 'max' | 'min'
+  /** hdd/cdd: degree days; longest: longest run of days meeting op/threshold; spells: runs of at least minRun days. */
+  agg: 'mean' | 'sum' | 'count' | 'max' | 'min' | 'hdd' | 'cdd' | 'longest' | 'spells'
   unit: Unit
   op?: Op
   threshold?: number
+  minRun?: number
   /** For the map: which way is "warmer/more extreme" (used for colour ramps). */
   hue: 'warm' | 'cold' | 'wet'
 }
@@ -140,6 +142,8 @@ export const METRICS: Metric[] = [
   { kind: 'daily', id: 'tmin_abs', group: 'temp', field: 'tmin', agg: 'min', unit: 'C', hue: 'cold' },
   { kind: 'daily', id: 'hot_days', group: 'heat', field: 'tmax', agg: 'count', op: '>=', threshold: 30, unit: 'days', hue: 'warm' },
   { kind: 'daily', id: 'summer_days', group: 'heat', field: 'tmax', agg: 'count', op: '>=', threshold: 25, unit: 'days', hue: 'warm' },
+  { kind: 'daily', id: 'heatwaves', group: 'heat', field: 'tmax', agg: 'spells', op: '>=', threshold: 30, minRun: 3, unit: 'days', hue: 'warm' },
+  { kind: 'daily', id: 'heatwave_max', group: 'heat', field: 'tmax', agg: 'longest', op: '>=', threshold: 30, unit: 'days', hue: 'warm' },
   { kind: 'daily', id: 'tropical_nights', group: 'heat', field: 'tmin', agg: 'count', op: '>=', threshold: 20, unit: 'days', hue: 'warm' },
   { kind: 'daily', id: 'frost_days', group: 'cold', field: 'tmin', agg: 'count', op: '<', threshold: 0, unit: 'days', hue: 'cold' },
   { kind: 'daily', id: 'ice_days', group: 'cold', field: 'tmax', agg: 'count', op: '<', threshold: 0, unit: 'days', hue: 'cold' },
@@ -148,8 +152,11 @@ export const METRICS: Metric[] = [
   { kind: 'daily', id: 'wet_days', group: 'precip', field: 'precip', agg: 'count', op: '>=', threshold: 1, unit: 'days', hue: 'wet' },
   { kind: 'daily', id: 'heavy_rain_days', group: 'precip', field: 'precip', agg: 'count', op: '>=', threshold: 10, unit: 'days', hue: 'wet' },
   { kind: 'daily', id: 'precip_max', group: 'precip', field: 'precip', agg: 'max', unit: 'mm', hue: 'wet' },
+  { kind: 'daily', id: 'dry_spell_max', group: 'precip', field: 'precip', agg: 'longest', op: '<', threshold: 1, unit: 'days', hue: 'warm' },
   { kind: 'daily', id: 'snow', group: 'precip', field: 'snow', agg: 'sum', unit: 'cm', hue: 'cold' },
   { kind: 'daily', id: 'snow_days', group: 'precip', field: 'snow', agg: 'count', op: '>=', threshold: 1, unit: 'days', hue: 'cold' },
+  { kind: 'daily', id: 'hdd', group: 'energy', field: 'tmean', agg: 'hdd', unit: 'dd', hue: 'cold' },
+  { kind: 'daily', id: 'cdd', group: 'energy', field: 'tmean', agg: 'cdd', unit: 'dd', hue: 'warm' },
   { kind: 'seasonal', id: 'winter_days', group: 'seasons', unit: 'days', hue: 'cold' },
   { kind: 'seasonal', id: 'summer_days_thermal', group: 'seasons', unit: 'days', hue: 'warm' },
   { kind: 'seasonal', id: 'growing_days', group: 'seasons', unit: 'days', hue: 'warm' },
@@ -181,24 +188,47 @@ export function aggregate(s: Series, metricId: string, period: Period = 'year', 
   const vals = s[m.field]
   const thr = threshold ?? m.threshold ?? 0
   const test = m.op ? compare[m.op] : null
-  const acc = new Map<number, { n: number; sum: number; count: number; max: number; min: number }>()
+  const minRun = m.minRun ?? 1
+  type Acc = { n: number; sum: number; count: number; max: number; min: number; deg: number; run: number; longest: number; spells: number; last: number }
+  const acc = new Map<number, Acc>()
   for (let i = 0; i < s.n; i++) {
     const py = periodYear(period, s.year[i], s.month[i], months)
     if (py === null) continue
     const v = vals[i]
     if (Number.isNaN(v)) continue
     let a = acc.get(py)
-    if (!a) acc.set(py, (a = { n: 0, sum: 0, count: 0, max: -Infinity, min: Infinity }))
+    if (!a) acc.set(py, (a = { n: 0, sum: 0, count: 0, max: -Infinity, min: Infinity, deg: 0, run: 0, longest: 0, spells: 0, last: -2 }))
     a.n++
     a.sum += v
-    if (test && test(v, thr)) a.count++
     if (v > a.max) a.max = v
     if (v < a.min) a.min = v
+    // Eurostat degree days: heating 18 − T when T ≤ 15 °C, cooling T − 21 when T ≥ 24 °C.
+    if (m.agg === 'hdd' && v <= 15) a.deg += 18 - v
+    if (m.agg === 'cdd' && v >= 24) a.deg += v - 21
+    // Runs are cut by gaps (other months of a season, missing days).
+    if (i !== a.last + 1) a.run = 0
+    a.last = i
+    if (test && test(v, thr)) {
+      a.count++
+      a.run++
+      if (a.run > a.longest) a.longest = a.run
+      if (a.run === minRun) a.spells++
+    } else a.run = 0
   }
   const out: YearValue[] = []
   for (const [year, a] of [...acc].sort((x, y) => x[0] - y[0])) {
     if (a.n !== expectedDays(period, year, months)) continue
-    const value = { mean: a.sum / a.n, sum: a.sum, count: a.count, max: a.max, min: a.min }[m.agg]
+    const value = {
+      mean: a.sum / a.n,
+      sum: a.sum,
+      count: a.count,
+      max: a.max,
+      min: a.min,
+      hdd: a.deg,
+      cdd: a.deg,
+      longest: a.longest,
+      spells: a.spells,
+    }[m.agg]
     out.push({ year, value })
   }
   return out

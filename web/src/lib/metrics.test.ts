@@ -215,3 +215,34 @@ describe('isPeriod', () => {
     for (const bad of [null, '', 'm0', 'm13', 'mx', 'winter', 'm1<script>']) expect(isPeriod(bad)).toBe(false)
   })
 })
+
+describe('degree days and runs', () => {
+  // 2001: tmax pattern in July -> runs of 4, 2 and 3 hot days; precip dry except every 10th day.
+  const hot = new Set([3, 4, 5, 6, 10, 11, 20, 21, 22])
+  const s = decode(
+    make('2001-01-01', 365, (d, i) => {
+      const m = d.getUTCMonth() + 1
+      return {
+        tmax: m === 7 && hot.has(d.getUTCDate()) ? 32 : 20,
+        tmean: m === 1 ? 0 : m === 8 ? 25 : 16, // Jan heating, Aug cooling, else neither
+        precip: i % 10 === 0 ? 5 : 0,
+      }
+    }),
+  )
+  const v = (id: string, p: Parameters<typeof aggregate>[2] = 'year') => aggregate(s, id, p)[0].value
+
+  it('counts Eurostat heating and cooling degree days', () => {
+    expect(v('hdd')).toBeCloseTo(31 * 18) // only January (0 °C) is ≤ 15 °C
+    expect(v('cdd')).toBeCloseTo(31 * 4) // only August (25 °C) is ≥ 24 °C
+  })
+
+  it('finds heatwaves (≥ 3 days) and the longest one', () => {
+    expect(v('heatwaves')).toBe(2)
+    expect(v('heatwave_max')).toBe(4)
+    expect(v('heatwaves', 'm7')).toBe(2)
+  })
+
+  it('finds the longest dry spell', () => {
+    expect(v('dry_spell_max')).toBe(9)
+  })
+})
