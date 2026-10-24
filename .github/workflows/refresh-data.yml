@@ -1,0 +1,67 @@
+name: Refresh 2026 data
+
+# Fridays 15:00 UTC = 16:00 in Poland in winter (17:00 in summer).
+# GitHub may start scheduled runs some minutes late.
+on:
+  schedule:
+    - cron: '0 15 * * 5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    # The export script waits out Open-Meteo rate limits (up to 30 min per wait).
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Read current last date
+        id: before
+        run: echo "last=$(jq -r .lastDate web/public/data/meta.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Download recent data and export JSON
+        run: uv run python scripts/export_web_data.py --refresh-recent
+
+      - name: Rebuild summary, test and build
+        working-directory: web
+        run: |
+          npm ci
+          npm run summary
+          npm test
+          npm run build
+
+      - name: Open pull request if there are new days
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BEFORE: ${{ steps.before.outputs.last }}
+        run: |
+          after=$(jq -r .lastDate web/public/data/meta.json)
+          if [ "$after" = "$BEFORE" ]; then
+            echo "No new days (last date still $after)."
+            exit 0
+          fi
+          branch="data/refresh-$after"
+          title="Refresh 2026 climate data to $after"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add data/raw/recent web/public/data
+          git commit -m "$title"
+          git push origin "$branch"
+          gh pr create --base master --head "$branch" --title "$title" --body "Automatic weekly refresh: daily data now ends on $after (was $BEFORE). Tests and build passed in the workflow run. Merging deploys the site."
