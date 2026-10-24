@@ -47,7 +47,7 @@ uv run python scripts/build_report.py                  # report/index.html (self
 
 ## Method conventions
 
-ERA5 reanalysis via Open-Meteo, one grid point per city. Normal 1961–1990; trends are least-squares per decade. Thermal seasons use a 7-day smoothed daily mean: winter < 0 °C, summer > 15 °C, growing season ≥ 5 °C. Hot day tmax ≥ 30 °C, ice day tmax < 0 °C.
+ERA5 reanalysis via Open-Meteo, one grid point per city. Normal 1961–1990; trends are least-squares per decade. Thermal seasons use a 7-day smoothed daily mean: winter < 0 °C, summer > 15 °C, growing season ≥ 5 °C. Hot day tmax ≥ 30 °C, ice day tmax < 0 °C. Heatwave = ≥ 3 days in a row with tmax ≥ 30 °C; dry spell = days in a row with precip < 1 mm (runs are cut at period boundaries). Degree days follow Eurostat: HDD = 18 − Tmean on days with Tmean ≤ 15 °C, CDD = Tmean − 21 on days with Tmean ≥ 24 °C.
 
 ## Notes
 
