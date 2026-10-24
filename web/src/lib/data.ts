@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { decode, type RawDaily, type Series } from './metrics.ts'
+import type { Monthly } from './monthly.ts'
 
 export interface City {
   id: string
@@ -49,7 +50,8 @@ function load<T>(path: string, transform: (json: unknown) => T = (j) => j as T):
 
 export const loadMeta = () => load<Meta>('meta.json')
 export const loadSummary = () => load<Summary>('summary.json')
-export const loadSeries = (id: string) => load<Series>(`daily/${id}.json`, (j) => decode(j as RawDaily))
+export const loadMonthly = () => load<Monthly>('monthly.json')
+export const loadSeries =(id: string) => load<Series>(`daily/${id}.json`, (j) => decode(j as RawDaily))
 
 type Async<T> = { data: T | undefined; error: Error | undefined; loading: boolean }
 

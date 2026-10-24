@@ -3,7 +3,7 @@ import { useI18n, type Key } from '../lib/i18n.tsx'
 import { param, useRoute } from '../lib/router.ts'
 import { loadMeta, loadSummary, rangeMean, useAsync, useSeries, type Meta, type Summary } from '../lib/data.ts'
 import { dayStats, METRIC_BY_ID, type Series } from '../lib/metrics.ts'
-import { dateLabel, num, withUnit } from '../lib/format.ts'
+import { dateLabel, num, ordinal, withUnit } from '../lib/format.ts'
 import { useTokens } from '../lib/theme.ts'
 import { Chart } from '../components/Chart.tsx'
 import { Card, PageHead, Ready } from '../components/Status.tsx'
@@ -23,13 +23,6 @@ export default function YourDay() {
       </Ready>
     </>
   )
-}
-
-const ordinal = (lang: string, n: number) => {
-  if (lang === 'pl') return `${n}.`
-  const s = ['th', 'st', 'nd', 'rd']
-  const v = n % 100
-  return n + (s[(v - 20) % 10] || s[v] || s[0])
 }
 
 function Content({ meta, summary }: { meta: Meta; summary: Summary }) {
