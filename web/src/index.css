@@ -889,3 +889,12 @@ h3.sub {
     scroll-behavior: auto !important;
   }
 }
+/* Four KPIs: 2 × 2 on narrow screens, one row on wide ones (no empty cell). */
+.kpis-4 {
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 900px) {
+  .kpis-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

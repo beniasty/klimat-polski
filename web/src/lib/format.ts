@@ -41,7 +41,15 @@ export function withUnit(lang: Lang, v: number | null | undefined, unit: Unit, s
   return `${num(lang, v, digits, sign)}${unit === 'C' ? ' ' : ' '}${u}`
 }
 
-export const separators = (lang: Lang) => (lang === 'pl' ? ', ' : '.,')
+/** 3 -> "3." (pl) / "3rd" (en). */
+export const ordinal = (lang: Lang, n: number) => {
+  if (lang === 'pl') return `${n}.`
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return n + (s[(v - 20) % 10] || s[v] || s[0])
+}
+
+export const separators =(lang: Lang) => (lang === 'pl' ? ', ' : '.,')
 
 /** CSV download from rows of plain values. */
 export function downloadCsv(filename: string, header: string[], rows: (string | number | null)[][]) {

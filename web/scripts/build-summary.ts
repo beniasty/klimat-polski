@@ -1,5 +1,6 @@
 /**
- * Pre-compute yearly indicators for all cities -> public/data/summary.json.
+ * Pre-compute yearly indicators for all cities -> public/data/summary.json,
+ * and monthly values -> public/data/monthly.json.
  * Uses the same metrics module as the browser, so numbers always match.
  *
  * Run: npm run summary   (Node 24 runs TypeScript directly)
@@ -7,6 +8,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { aggregate, decode, METRICS, SEASONS, type RawDaily } from '../src/lib/metrics.ts'
+import type { Monthly, MonthlyField } from '../src/lib/monthly.ts'
 
 const DATA = join(import.meta.dirname, '..', 'public', 'data')
 const meta = JSON.parse(readFileSync(join(DATA, 'meta.json'), 'utf8'))
@@ -35,3 +37,26 @@ for (const city of meta.cities as { id: string; name: string }[]) {
 
 writeFileSync(join(DATA, 'summary.json'), JSON.stringify({ years, cities }))
 console.log('summary.json written')
+
+// Monthly values (complete months only, incl. the current year) for the "Month" page.
+const MONTHLY: Record<MonthlyField, string> = { tmean: 'tmean', precip: 'precip', tmax: 'tmax_abs', tmin: 'tmin_abs' }
+const lastYear = Number(meta.lastDate.slice(0, 4))
+const months = (lastYear - first) * 12 + Number(meta.lastDate.slice(5, 7))
+const monthly: Monthly = { start: [first, 1], months, cities: {} }
+for (const city of meta.cities as { id: string }[]) {
+  const s = decode(JSON.parse(readFileSync(join(DATA, 'daily', `${city.id}.json`), 'utf8')))
+  const out = {} as Monthly['cities'][string]
+  for (const [field, metricId] of Object.entries(MONTHLY) as [MonthlyField, string][]) {
+    const arr: (number | null)[] = new Array(months).fill(null)
+    for (let m = 1; m <= 12; m++) {
+      for (const r of aggregate(s, metricId, `m${m}`)) {
+        const i = (r.year - first) * 12 + m - 1
+        if (i >= 0 && i < months) arr[i] = Math.round(r.value * 10) / 10
+      }
+    }
+    out[field] = arr
+  }
+  monthly.cities[city.id] = out
+}
+writeFileSync(join(DATA, 'monthly.json'), JSON.stringify(monthly))
+console.log('monthly.json written')

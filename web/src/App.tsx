@@ -11,6 +11,7 @@ import { Loading } from './components/Status.tsx'
 
 const pages: Record<Page, React.LazyExoticComponent<() => React.JSX.Element>> = {
   overview: lazy(() => import('./pages/Overview.tsx')),
+  month: lazy(() => import('./pages/Month.tsx')),
   explore: lazy(() => import('./pages/Explore.tsx')),
   map: lazy(() => import('./pages/MapPage.tsx')),
   compare: lazy(() => import('./pages/Compare.tsx')),
