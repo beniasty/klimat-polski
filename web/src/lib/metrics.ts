@@ -113,7 +113,8 @@ function expectedDays(period: Period, y: number, months: number[]): number {
 
 // --- metric registry ------------------------------------------------------------
 
-export type Unit = 'C' | 'mm' | 'cm' | 'days' | 'doy' | 'dd' | 'h'
+/** count = number of events (e.g. heatwaves), shown without a unit. */
+export type Unit = 'C' | 'mm' | 'cm' | 'days' | 'doy' | 'dd' | 'h' | 'count'
 type Op = '>=' | '>' | '<' | '<='
 export type MetricGroup = 'temp' | 'heat' | 'cold' | 'precip' | 'water' | 'energy' | 'seasons'
 
@@ -148,7 +149,7 @@ export const METRICS: Metric[] = [
   { kind: 'daily', id: 'tmin_abs', group: 'temp', field: 'tmin', agg: 'min', unit: 'C', hue: 'cold' },
   { kind: 'daily', id: 'hot_days', group: 'heat', field: 'tmax', agg: 'count', op: '>=', threshold: 30, unit: 'days', hue: 'warm' },
   { kind: 'daily', id: 'summer_days', group: 'heat', field: 'tmax', agg: 'count', op: '>=', threshold: 25, unit: 'days', hue: 'warm' },
-  { kind: 'daily', id: 'heatwaves', group: 'heat', field: 'tmax', agg: 'spells', op: '>=', threshold: 30, minRun: 3, unit: 'days', hue: 'warm' },
+  { kind: 'daily', id: 'heatwaves', group: 'heat', field: 'tmax', agg: 'spells', op: '>=', threshold: 30, minRun: 3, unit: 'count', hue: 'warm' },
   { kind: 'daily', id: 'heatwave_max', group: 'heat', field: 'tmax', agg: 'longest', op: '>=', threshold: 30, unit: 'days', hue: 'warm' },
   { kind: 'daily', id: 'tropical_nights', group: 'heat', field: 'tmin', agg: 'count', op: '>=', threshold: 20, unit: 'days', hue: 'warm' },
   { kind: 'daily', id: 'frost_days', group: 'cold', field: 'tmin', agg: 'count', op: '<', threshold: 0, unit: 'days', hue: 'cold' },

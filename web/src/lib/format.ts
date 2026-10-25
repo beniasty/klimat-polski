@@ -30,7 +30,7 @@ export function monthNames(lang: Lang, style: 'short' | 'long' = 'short'): strin
 }
 
 export function unitLabel(unit: Unit, lang: Lang): string {
-  return { C: '°C', mm: 'mm', cm: 'cm', days: lang === 'pl' ? 'dni' : 'days', doy: '', dd: '°C·d', h: 'h' }[unit]
+  return { C: '°C', mm: 'mm', cm: 'cm', days: lang === 'pl' ? 'dni' : 'days', doy: '', dd: '°C·d', h: 'h', count: '' }[unit]
 }
 
 /** "dzień" / "dni", or "dnia" after a decimal number; English day/days. */
@@ -46,7 +46,7 @@ export function withUnit(lang: Lang, v: number | null | undefined, unit: Unit, s
   if (unit === 'doy') return sign ? withUnit(lang, v, 'days', true, digitsOverride ?? 0) : doyLabel(lang, v)
   const digits = digitsOverride ?? (unit === 'C' ? 1 : 0)
   const u = unit === 'days' && v !== null && v !== undefined && Number.isFinite(v) ? dayWord(lang, v, digits) : unitLabel(unit, lang)
-  return `${num(lang, v, digits, sign)}${unit === 'C' ? ' ' : ' '}${u}`
+  return u ? `${num(lang, v, digits, sign)} ${u}` : num(lang, v, digits, sign)
 }
 
 /** 3 -> "3." (pl) / "3rd" (en). */
