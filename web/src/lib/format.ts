@@ -33,11 +33,19 @@ export function unitLabel(unit: Unit, lang: Lang): string {
   return { C: '°C', mm: 'mm', cm: 'cm', days: lang === 'pl' ? 'dni' : 'days', doy: '', dd: '°C·d', h: 'h' }[unit]
 }
 
+/** "dzień" / "dni", or "dnia" after a decimal number; English day/days. */
+export function dayWord(lang: Lang, v: number, digits: number): string {
+  const shown = Math.abs(Number(v.toFixed(digits)))
+  if (lang !== 'pl') return shown === 1 && digits === 0 ? 'day' : 'days'
+  if (digits > 0) return 'dnia' // "0,7 dnia", "1,0 dnia"
+  return shown === 1 ? 'dzień' : 'dni'
+}
+
 /** Value with unit, digits chosen by unit. */
 export function withUnit(lang: Lang, v: number | null | undefined, unit: Unit, sign = false, digitsOverride?: number): string {
-  if (unit === 'doy') return sign ? `${num(lang, v, digitsOverride ?? 0, true)} ${lang === 'pl' ? 'dni' : 'days'}` : doyLabel(lang, v)
+  if (unit === 'doy') return sign ? withUnit(lang, v, 'days', true, digitsOverride ?? 0) : doyLabel(lang, v)
   const digits = digitsOverride ?? (unit === 'C' ? 1 : 0)
-  const u = unitLabel(unit, lang)
+  const u = unit === 'days' && v !== null && v !== undefined && Number.isFinite(v) ? dayWord(lang, v, digits) : unitLabel(unit, lang)
   return `${num(lang, v, digits, sign)}${unit === 'C' ? ' ' : ' '}${u}`
 }
 

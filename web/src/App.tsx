@@ -55,13 +55,14 @@ export default function App() {
   const { page } = useRoute()
   const { t, lang, setLang } = useI18n()
   const [theme, setTheme] = useThemeChoice()
-  const [menuOpen, setMenuOpen] = useState(false)
+  // The menu is open for one page only, so it closes by itself when the page changes.
+  const [menuFor, setMenuFor] = useState<Page | null>(null)
+  const menuOpen = menuFor === page
   const mainRef = useRef<HTMLElement>(null)
   useAsync(loadMeta, 'meta') // start loading early
 
   useEffect(() => {
     document.title = `${t(`nav.${page}` as Key)} · ${t('site.title')}`
-    setMenuOpen(false)
     window.scrollTo(0, 0)
   }, [page, t])
 
@@ -97,7 +98,7 @@ export default function App() {
             >
               <span aria-hidden="true">{THEME_ICON[theme]}</span>
             </button>
-            <button type="button" className="menu-btn" aria-expanded={menuOpen} aria-controls="site-nav" onClick={() => setMenuOpen((o) => !o)}>
+            <button type="button" className="menu-btn" aria-expanded={menuOpen} aria-controls="site-nav" onClick={() => setMenuFor(menuOpen ? null : page)}>
               {lang === 'pl' ? 'Menu' : 'Menu'}
             </button>
           </div>
