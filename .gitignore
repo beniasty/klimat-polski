@@ -16,3 +16,7 @@ Thumbs.db
 
 # Local working notes
 PROGRESS.md
+
+# Playwright
+web/test-results/
+web/playwright-report/

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Poland's climate 1951–2025 (+ 2026 to date) for 18 regional capitals: a Python analysis (pandas, Jupyter, static report) and an interactive website in `web/` (Vite + React 19 + TypeScript, Plotly). Live site: https://beniasty.github.io/klimat-polski/ — deployed by `.github/workflows/deploy.yml` on every push to `master` (runs `npm ci`, `npm test`, `npm run build`, publishes `web/dist`). `.github/workflows/refresh-data.yml` refreshes the 2026 data every Friday and opens a PR when new days arrive.
+Poland's climate 1951–2025 (+ 2026 to date) for 18 regional capitals: a Python analysis (pandas, Jupyter, static report) and an interactive website in `web/` (Vite + React 19 + TypeScript, Plotly). Live site: https://beniasty.github.io/klimat-polski/ — deployed by `.github/workflows/deploy.yml` on every push to `master` (runs `npm ci`, `npm test`, `npm run build`, publishes `web/dist`). `.github/workflows/ci.yml` runs unit tests, lint, build and E2E on every PR (the deploy also runs E2E). `.github/workflows/refresh-data.yml` refreshes the 2026 data every Friday and opens a PR when new days arrive.
 
 ## Commands
 
@@ -17,6 +17,7 @@ npx vitest run src/lib/metrics.test.ts -t "name"   # single test
 npm run lint                        # oxlint
 npm run build                       # tsc -b && vite build -> web/dist
 npm run summary                     # recompute public/data/summary.json
+npm run e2e                         # Playwright smoke tests on the built site (npm run build first; npx playwright install chromium once)
 ```
 
 Data (Python always via `uv`, from repo root):
