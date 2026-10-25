@@ -8,8 +8,8 @@ const m: Monthly = {
   start: [2000, 1],
   months,
   cities: {
-    a: { tmean: series((i) => i), precip: series(() => 10), tmax: series((i) => i + 5), tmin: series((i) => i - 5) },
-    b: { tmean: series((i) => (i === 26 ? null : i + 2)), precip: series(() => 20), tmax: series((i) => i + 9), tmin: series((i) => i - 1) },
+    a: { tmean: series((i) => i), precip: series(() => 10), tmax: series((i) => i + 5), tmin: series((i) => i - 5), wb: series(() => 0) },
+    b: { tmean: series((i) => (i === 26 ? null : i + 2)), precip: series(() => 20), tmax: series((i) => i + 9), tmin: series((i) => i - 1), wb: series(() => 0) },
   },
 }
 
@@ -39,7 +39,7 @@ describe('monthly', () => {
     const pl = polandSeries(m, 'tmean')
     expect(sameMonth(m, pl, 2).map((d) => d.year)).toEqual([2000, 2001, 2002])
     // February: 2, 14, 26 -> 2002 is the warmest of 3; normal over 2000–2001 = 8.
-    expect(monthStat(m, pl, [2002, 2], [2000, 2001])).toEqual({ value: 26, normal: 8, rank: 1, ofYears: 3 })
+    expect(monthStat(m, pl, [2002, 2], [2000, 2001])).toEqual({ value: 26, normal: 8, rank: 1, rankLow: 3, ofYears: 3 })
     expect(monthStat(m, pl, [2002, 3], [2000, 2001])).toBeNull()
   })
 

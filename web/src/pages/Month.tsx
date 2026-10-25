@@ -33,6 +33,7 @@ interface Row {
   rank: number
   precip: number | null
   pct: number | null
+  wb: number | null
   max: number | null
   min: number | null
 }
@@ -57,8 +58,10 @@ function Content({ meta, m }: { meta: Meta; m: Monthly }) {
 
   const plT = useMemo(() => polandSeries(m, 'tmean'), [m])
   const plP = useMemo(() => polandSeries(m, 'precip'), [m])
+  const plW = useMemo(() => polandSeries(m, 'wb'), [m])
   const temp = monthStat(m, plT, [y, mo], baseline)!
   const precip = monthStat(m, plP, [y, mo], baseline)
+  const wb = monthStat(m, plW, [y, mo], baseline)
   const hi = extreme(m, 'tmax', i, 'max')
   const lo = extreme(m, 'tmin', i, 'min')
   const cityName = (id: string) => meta.cities.find((c) => c.id === id)?.name ?? id
@@ -76,6 +79,7 @@ function Content({ meta, m }: { meta: Meta; m: Monthly }) {
       rank: s.rank,
       precip: p?.value ?? null,
       pct: p && p.normal > 0 ? (100 * p.value) / p.normal : null,
+      wb: m.cities[c.id].wb[i],
       max: m.cities[c.id].tmax[i],
       min: m.cities[c.id].tmin[i],
     }
@@ -87,6 +91,7 @@ function Content({ meta, m }: { meta: Meta; m: Monthly }) {
     { key: 'rank', label: t('month.col.rank'), value: (r) => r.rank, render: (r) => ordinal(lang, r.rank) },
     { key: 'precip', label: t('month.col.precip'), value: (r) => r.precip, render: (r) => `${num(lang, r.precip, 0)} mm` },
     { key: 'pct', label: t('month.col.pct'), value: (r) => r.pct, render: (r) => `${num(lang, r.pct, 0)}%` },
+    { key: 'wb', label: t('month.col.wb'), value: (r) => r.wb, render: (r) => `${num(lang, r.wb, 0, true)} mm` },
     { key: 'max', label: t('month.col.max'), value: (r) => r.max, render: (r) => `${num(lang, r.max)} °C` },
     { key: 'min', label: t('month.col.min'), value: (r) => r.min, render: (r) => `${num(lang, r.min)} °C` },
   ]
@@ -135,6 +140,11 @@ function Content({ meta, m }: { meta: Meta; m: Monthly }) {
               <div className="kpi-sub">
                 {t('month.pctNormal', { p: num(lang, (100 * precip.value) / precip.normal, 0) })} · {t('month.rankWet', { rank: ordinal(lang, precip.rank), first })}
               </div>
+              {wb && (
+                <div className="kpi-sub">
+                  {t('month.wb', { v: num(lang, wb.value, 0, true), n: num(lang, wb.normal, 0, true) })} · {t('month.rankDry', { rank: ordinal(lang, wb.rankLow), first })}
+                </div>
+              )}
             </div>
           )}
           {hi && (

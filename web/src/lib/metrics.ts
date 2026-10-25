@@ -8,6 +8,8 @@
 /** et0 = reference evapotranspiration (mm), sun = sunshine duration (hours). */
 export type Field = 'tmax' | 'tmin' | 'tmean' | 'precip' | 'snow' | 'et0' | 'sun'
 export const FIELDS: Field[] = ['tmax', 'tmin', 'tmean', 'precip', 'snow', 'et0', 'sun']
+/** Stored in public/data/daily-extra/ and loaded only for the measures that need them. */
+export const EXTRA_FIELDS: Field[] = ['et0', 'sun']
 
 /** Daily data as stored in public/data/daily/<id>.json (values ×10, null = missing). */
 export interface RawDaily extends Record<Field, (number | null)[]> {
@@ -174,6 +176,9 @@ export const METRICS: Metric[] = [
   { kind: 'seasonal', id: 'frost_free', group: 'seasons', unit: 'days', hue: 'warm' },
 ]
 export const METRIC_BY_ID: Record<string, Metric> = Object.fromEntries(METRICS.map((m) => [m.id, m]))
+
+/** True if the measure reads ET0 or sunshine (directly or via the water balance). */
+export const needsExtra = (m: Metric) => m.kind === 'daily' && (m.field === 'wb' || EXTRA_FIELDS.includes(m.field))
 
 const compare: Record<Op, (a: number, b: number) => boolean> = {
   '>=': (a, b) => a >= b,

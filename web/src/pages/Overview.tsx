@@ -10,7 +10,7 @@ import { PolandMap } from '../components/PolandMap.tsx'
 import { Card, Ready } from '../components/Status.tsx'
 import { CitySelect } from '../components/Controls.tsx'
 
-const KPIS = ['tmean', 'hot_days', 'tropical_nights', 'ice_days', 'snow_days', 'winter_days'] as const
+const KPIS = ['tmean', 'hot_days', 'heatwaves', 'tropical_nights', 'ice_days', 'winter_days', 'hdd', 'water_balance'] as const
 const THEN: [number, number] = [1961, 1990]
 const NOW: [number, number] = [2016, 2025]
 
@@ -70,21 +70,22 @@ function Content({ meta, summary }: { meta: Meta; summary: Summary }) {
         </p>
       </section>
 
-      <div className="kpis" aria-label={cityName}>
+      <div className="kpis kpis-4" aria-label={cityName}>
         {KPIS.map((k) => {
           const arr = summarySeries(summary, city, k)
           const unit = METRIC_BY_ID[k].unit
           const a = rangeMean(summary, arr, ...THEN)
           const b = rangeMean(summary, arr, ...NOW)
+          const digits = k === 'heatwaves' ? 1 : undefined // ~0.1 → 0.7 a year: whole numbers would hide it
           return (
             <div className="kpi" key={k}>
               <div className="kpi-label">{t(`ov.k.${k}` as Key)}</div>
               <div className="kpi-values">
-                <span className="kpi-before">{withUnit(lang, a, unit)}</span>
+                <span className="kpi-before">{withUnit(lang, a, unit, false, digits)}</span>
                 <span className="kpi-arrow" aria-hidden="true">
                   →
                 </span>
-                <span className="kpi-after">{withUnit(lang, b, unit)}</span>
+                <span className="kpi-after">{withUnit(lang, b, unit, false, digits)}</span>
               </div>
               <div className="kpi-sub">
                 {t('ov.then')} → {t('ov.now')}

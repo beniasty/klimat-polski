@@ -3,7 +3,8 @@
  * and the statistics shown on the "Month" page. Pure functions, no DOM.
  */
 
-export type MonthlyField = 'tmean' | 'precip' | 'tmax' | 'tmin'
+/** wb = climatic water balance (precip − ET0), mm. */
+export type MonthlyField = 'tmean' | 'precip' | 'tmax' | 'tmin' | 'wb'
 
 /** Index i = month number i counted from `start` ([year, month]); null = incomplete month. */
 export interface Monthly {
@@ -61,6 +62,8 @@ export interface MonthStat {
   normal: number
   /** 1 = highest value of this calendar month in all years. */
   rank: number
+  /** 1 = lowest value (e.g. the driest). */
+  rankLow: number
   ofYears: number
 }
 
@@ -71,7 +74,8 @@ export function monthStat(m: Monthly, arr: (number | null)[], [y, mo]: YearMonth
   const base = all.filter((d) => d.year >= baseline[0] && d.year <= baseline[1])
   const normal = base.reduce((a, d) => a + d.value, 0) / base.length
   const rank = 1 + all.filter((d) => d.value > value).length
-  return { value, normal, rank, ofYears: all.length }
+  const rankLow = 1 + all.filter((d) => d.value < value).length
+  return { value, normal, rank, rankLow, ofYears: all.length }
 }
 
 /** City with the highest (max) or lowest (min) value of a field in one month. */
