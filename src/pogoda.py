@@ -55,6 +55,11 @@ DAILY_VARS = [
     "precipitation_sum",
     "snowfall_sum",
 ]
+# Added later; cached separately in data/raw/extra/ so the original CSVs stay untouched.
+EXTRA_VARS = [
+    "et0_fao_evapotranspiration",  # reference evapotranspiration, mm
+    "sunshine_duration",  # seconds per day
+]
 # Shorter column names used everywhere after loading.
 RENAME = {
     "time": "date",
@@ -63,6 +68,8 @@ RENAME = {
     "temperature_2m_mean": "tmean",
     "precipitation_sum": "precip",
     "snowfall_sum": "snow",
+    "et0_fao_evapotranspiration": "et0",
+    "sunshine_duration": "sun",
 }
 
 # Thresholds (IMGW-style definitions).
@@ -84,14 +91,14 @@ def raw_path(city: str) -> Path:
     return RAW_DIR / f"{slug(city)}.csv"
 
 
-def download_daily(lat: float, lon: float, start: str, end: str) -> pd.DataFrame:
+def download_daily(lat: float, lon: float, start: str, end: str, variables: list[str] | None = None) -> pd.DataFrame:
     """One request to the archive API, retrying when rate-limited."""
     params = {
         "latitude": lat,
         "longitude": lon,
         "start_date": start,
         "end_date": end,
-        "daily": ",".join(DAILY_VARS),
+        "daily": ",".join(variables or DAILY_VARS),
         "timezone": "Europe/Warsaw",
     }
     for attempt in range(200):
@@ -122,6 +129,22 @@ def fetch_city(city: str, force: bool = False) -> Path:
         return path
     lat, lon = ALL_CITIES[city]
     daily = download_daily(lat, lon, START_DATE, END_DATE)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    daily.to_csv(path, index=False)
+    return path
+
+
+def extra_path(city: str) -> Path:
+    return RAW_DIR / "extra" / f"{slug(city)}.csv"
+
+
+def fetch_extra(city: str, force: bool = False) -> Path:
+    """Download 1951–2025 EXTRA_VARS for one city, unless already cached."""
+    path = extra_path(city)
+    if path.exists() and not force:
+        return path
+    lat, lon = ALL_CITIES[city]
+    daily = download_daily(lat, lon, START_DATE, END_DATE, EXTRA_VARS)
     path.parent.mkdir(parents=True, exist_ok=True)
     daily.to_csv(path, index=False)
     return path

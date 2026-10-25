@@ -89,7 +89,7 @@ export function CityPicker({ cities, slots, onChange }: { cities: City[]; slots:
   )
 }
 
-const GROUPS: MetricGroup[] = ['temp', 'heat', 'cold', 'precip', 'energy', 'seasons']
+const GROUPS: MetricGroup[] = ['temp', 'heat', 'cold', 'precip', 'water', 'energy', 'seasons']
 
 export function MetricSelect({ value, onChange, only }: { value: string; onChange: (id: string) => void; only?: (id: string) => boolean }) {
   const { t } = useI18n()

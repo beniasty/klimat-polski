@@ -16,13 +16,13 @@ import {
 function make(
   start: string,
   days: number,
-  gen: (d: Date, i: number) => Partial<Record<'tmax' | 'tmin' | 'tmean' | 'precip' | 'snow', number | null>>,
+  gen: (d: Date, i: number) => Partial<Record<'tmax' | 'tmin' | 'tmean' | 'precip' | 'snow' | 'et0' | 'sun', number | null>>,
 ): RawDaily {
-  const raw: RawDaily = { id: 'x', start, tmax: [], tmin: [], tmean: [], precip: [], snow: [] }
+  const raw: RawDaily = { id: 'x', start, tmax: [], tmin: [], tmean: [], precip: [], snow: [], et0: [], sun: [] }
   const t0 = Date.parse(start + 'T00:00:00Z')
   for (let i = 0; i < days; i++) {
     const v = gen(new Date(t0 + i * 86400000), i)
-    for (const f of ['tmax', 'tmin', 'tmean', 'precip', 'snow'] as const) {
+    for (const f of ['tmax', 'tmin', 'tmean', 'precip', 'snow', 'et0', 'sun'] as const) {
       const x = f in v ? v[f]! : 0
       raw[f].push(x === null ? null : Math.round(x * 10))
     }
@@ -244,5 +244,19 @@ describe('degree days and runs', () => {
 
   it('finds the longest dry spell', () => {
     expect(v('dry_spell_max')).toBe(9)
+  })
+})
+
+describe('water balance', () => {
+  it('sums precipitation minus evapotranspiration', () => {
+    const s = decode(make('2001-01-01', 365, (_, i) => ({ precip: i % 10 === 0 ? 5 : 0, et0: 1, sun: 6 })))
+    expect(aggregate(s, 'water_balance')[0].value).toBeCloseTo(37 * 5 - 365)
+    expect(aggregate(s, 'et0')[0].value).toBeCloseTo(365)
+    expect(aggregate(s, 'sunshine')[0].value).toBeCloseTo(365 * 6)
+  })
+
+  it('skips years without evapotranspiration data', () => {
+    const s = decode(make('2001-01-01', 365, () => ({ precip: 1, et0: null })))
+    expect(aggregate(s, 'water_balance')).toEqual([])
   })
 })
