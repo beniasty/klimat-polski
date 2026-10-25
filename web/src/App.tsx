@@ -1,5 +1,5 @@
 import { Component, lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
-import { href, PAGES, useRoute, type Page } from './lib/router.ts'
+import { href, NAV_PAGES, useRoute, type Page } from './lib/router.ts'
 import { useI18n, type Key } from './lib/i18n.tsx'
 import { useThemeChoice, type ThemeChoice } from './lib/theme.ts'
 
@@ -19,6 +19,7 @@ const pages: Record<Page, React.LazyExoticComponent<() => React.JSX.Element>> = 
   records: lazy(() => import('./pages/Records.tsx')),
   day: lazy(() => import('./pages/YourDay.tsx')),
   about: lazy(() => import('./pages/About.tsx')),
+  quiz: lazy(() => import('./pages/Quiz.tsx')),
 }
 
 /** Shows an error message instead of a blank page if a page fails to load or render. */
@@ -105,7 +106,7 @@ export default function App() {
         </div>
         <nav id="site-nav" className={`site-nav${menuOpen ? ' open' : ''}`} aria-label={lang === 'pl' ? 'Główna' : 'Main'}>
           <ul>
-            {PAGES.map((p) => (
+            {NAV_PAGES.map((p) => (
               <li key={p}>
                 <a href={href(p)} aria-current={p === page ? 'page' : undefined}>
                   {t(`nav.${p}` as Key)}

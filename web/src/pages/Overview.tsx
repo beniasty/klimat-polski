@@ -112,7 +112,7 @@ function Content({ meta, summary }: { meta: Meta; summary: Summary }) {
         </Card>
         <Card title={t('ov.explore')}>
           <div className="links">
-            {(['explore', 'map', 'compare', 'nature', 'records', 'day'] as const).map((p) => (
+            {(['explore', 'map', 'compare', 'nature', 'records', 'day', 'quiz'] as const).map((p) => (
               <a key={p} href={href(p, city !== 'pl' ? { c: city } : undefined)}>
                 <strong>{t(`nav.${p}` as Key)}</strong>
                 <span>{t(`ov.card.${p}` as Key)}</span>
