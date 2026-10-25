@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { Component, lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
 import { href, PAGES, useRoute, type Page } from './lib/router.ts'
 import { useI18n, type Key } from './lib/i18n.tsx'
 import { useThemeChoice, type ThemeChoice } from './lib/theme.ts'
@@ -7,7 +7,7 @@ const NEXT_THEME: Record<ThemeChoice, ThemeChoice> = { auto: 'light', light: 'da
 const THEME_ICON: Record<ThemeChoice, string> = { auto: '◐', light: '☀', dark: '☾' }
 import { loadMeta, loadSummary, meanOfCities, useAsync } from './lib/data.ts'
 import { stripeColor } from './lib/colors.ts'
-import { Loading } from './components/Status.tsx'
+import { ErrorBox, Loading } from './components/Status.tsx'
 
 const pages: Record<Page, React.LazyExoticComponent<() => React.JSX.Element>> = {
   overview: lazy(() => import('./pages/Overview.tsx')),
@@ -19,6 +19,17 @@ const pages: Record<Page, React.LazyExoticComponent<() => React.JSX.Element>> = 
   records: lazy(() => import('./pages/Records.tsx')),
   day: lazy(() => import('./pages/YourDay.tsx')),
   about: lazy(() => import('./pages/About.tsx')),
+}
+
+/** Shows an error message instead of a blank page if a page fails to load or render. */
+class PageBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null }
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+  render() {
+    return this.state.error ? <ErrorBox error={this.state.error} /> : this.props.children
+  }
 }
 
 /** Tiny stripes used as the logo: the real Poland-mean anomalies once loaded. */
@@ -104,9 +115,11 @@ export default function App() {
         </nav>
       </header>
       <main id="main" ref={mainRef} tabIndex={-1}>
-        <Suspense fallback={<Loading />}>
-          <Current />
-        </Suspense>
+        <PageBoundary key={page}>
+          <Suspense fallback={<Loading />}>
+            <Current />
+          </Suspense>
+        </PageBoundary>
       </main>
       <footer className="site-footer">
         <p>
