@@ -1,12 +1,13 @@
 import { useMemo } from 'react'
 import { useI18n, type Key } from '../lib/i18n.tsx'
 import { param, useRoute } from '../lib/router.ts'
-import { loadMeta, useAsync, useSeries, type Meta } from '../lib/data.ts'
-import { annualCycle, isPeriod, valuesIn, type Field as F, type Period, type Series } from '../lib/metrics.ts'
-import { num } from '../lib/format.ts'
+import { loadMeta, loadSummary, rangeMean, useAsync, useSeries, type Meta, type Summary } from '../lib/data.ts'
+import { annualCycle, isPeriod, METRICS, valuesIn, type Field as F, type Period, type Series } from '../lib/metrics.ts'
+import { num, withUnit } from '../lib/format.ts'
 import { useTokens } from '../lib/theme.ts'
 import { monthAxis } from '../lib/chartHelpers.ts'
 import { Chart } from '../components/Chart.tsx'
+import { DataTable, type Column } from '../components/DataTable.tsx'
 import { Card, PageHead, Ready } from '../components/Status.tsx'
 import { CitySelect, Field, FilterBar, PeriodSelect, YearRange } from '../components/Controls.tsx'
 
@@ -64,6 +65,7 @@ function Content({ meta }: { meta: Meta }) {
       <Ready loading={series.loading} error={series.error}>
         {() => <Results s={series.data![0]} field={field} period={period} a={a} b={b} />}
       </Ready>
+      <Decades meta={meta} city={city} />
     </>
   )
 }
@@ -206,5 +208,45 @@ function Results({ s, field, period, a, b }: { s: Series; field: F; period: Peri
         </p>
       </Card>
     </>
+  )
+}
+
+type DecadeRow = { id: string; label: string; values: number[] }
+
+/** Every measure for the chosen city, averaged per calendar decade (from summary.json). */
+function Decades({ meta, city }: { meta: Meta; city: string }) {
+  const { t, lang } = useI18n()
+  const summary = useAsync(loadSummary, 'summary')
+  if (!summary.data) return null
+  const s: Summary = summary.data
+  const [first, last] = [s.years[0], s.years[s.years.length - 1]]
+  const decades = Array.from({ length: Math.floor(last / 10) - Math.floor(first / 10) + 1 }, (_, k) => Math.floor(first / 10) * 10 + k * 10)
+  const span = (d: number): [number, number] => [Math.max(d, first), Math.min(d + 9, last)]
+  const label = (d: number) => {
+    const [a, b] = span(d)
+    return `${a}–${String(b).slice(2)}`
+  }
+  const rows: DecadeRow[] = METRICS.map((m) => ({
+    id: m.id,
+    label: t(`m.${m.id}` as Key),
+    values: decades.map((d) => rangeMean(s, s.cities[city][m.id], ...span(d))),
+  }))
+  const unitOf = (id: string) => METRICS.find((m) => m.id === id)!.unit
+  // Rare events (e.g. heatwaves ~1 a year) need a decimal to show any change.
+  const digits = (r: DecadeRow) => (unitOf(r.id) === 'C' ? 1 : r.values.every((v) => !Number.isFinite(v) || Math.abs(v) < 10) ? 1 : 0)
+  const columns: Column<DecadeRow>[] = [
+    { key: 'label', label: t('cmp.measure'), value: (r) => r.label, align: 'left' },
+    ...decades.map((d, k) => ({
+      key: String(d),
+      label: label(d),
+      value: (r: DecadeRow) => (Number.isFinite(r.values[k]) ? Math.round(r.values[k] * 100) / 100 : null),
+      render: (r: DecadeRow) => withUnit(lang, r.values[k], unitOf(r.id), false, unitOf(r.id) === 'doy' ? undefined : digits(r)),
+    })),
+  ]
+  const cityName = meta.cities.find((c) => c.id === city)!.name
+  return (
+    <Card title={`${t('cmp.decades')} · ${cityName}`} note={t('cmp.decadesNote', { a: label(decades[0]), b: label(decades[decades.length - 1]) })}>
+      <DataTable rows={rows} columns={columns} caption={`${t('cmp.decades')} · ${cityName}`} csvName={`klimat-dekady-${city}.csv`} rowKey={(r) => r.id} maxHeight={720} />
+    </Card>
   )
 }
