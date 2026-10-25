@@ -263,6 +263,11 @@ const pl = {
   'day.lifeNow': 'Teraz 2016–2025',
   'day.lifeWarmer': 'W Twoim życiu {n} z {total} lat było cieplejszych od normy 1961–1990.',
   'day.lifeWarmest': 'Najcieplejszy rok Twojego życia: {y}.',
+  'day.warmer': 'Cieplej niż kiedyś',
+  'day.warmerAll': 'Dziś każde z {n} miast jest cieplejsze niż najcieplejsze miasto w latach 1961–1990.',
+  'day.warmerSome': 'W mieście {city} jest dziś cieplej niż w {k} z {n} miast w latach 1961–1990.',
+  'day.warmerText': '{city}: {a} °C w latach 1961–1990, {b} °C w latach 2016–2025. Najcieplejsze miasto w latach 1961–1990: {top} ({t} °C).',
+  'day.warmerChart': 'Średnia roczna temperatura miast: kiedyś i dziś',
 
   // about
   'about.title': 'O danych i metodzie',
@@ -528,6 +533,11 @@ const en: Dict = {
   'day.lifeNow': 'Now 2016–2025',
   'day.lifeWarmer': 'In your lifetime {n} of {total} years were warmer than the 1961–1990 normal.',
   'day.lifeWarmest': 'Warmest year of your life: {y}.',
+  'day.warmer': 'Warmer than ever',
+  'day.warmerAll': 'Today every one of the {n} cities is warmer than the warmest city was in 1961–1990.',
+  'day.warmerSome': 'Today {city} is warmer than {k} of the {n} cities were in 1961–1990.',
+  'day.warmerText': '{city}: {a} °C in 1961–1990, {b} °C in 2016–2025. Warmest city in 1961–1990: {top} ({t} °C).',
+  'day.warmerChart': 'Mean annual temperature of the cities: then and now',
   'about.title': 'About the data and method',
   'about.body': [
     'Daily data come from the Open-Meteo Historical Weather API (ERA5 / ERA5-Land reanalysis, CC BY 4.0). A reanalysis is a weather model fitted to historical observations: complete and consistent over time, but slightly smoother than a single weather station. This matters most for precipitation, which can be very local.',

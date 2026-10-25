@@ -61,6 +61,7 @@ function Content({ meta, summary }: { meta: Meta; summary: Summary }) {
         {() => <DayCard s={series.data![0]} date={date} meta={meta} cityName={cityName} />}
       </Ready>
       <Life summary={summary} city={city} cityName={cityName} birth={birth} />
+      <WarmerThan summary={summary} meta={meta} city={city} />
     </>
   )
 }
@@ -189,6 +190,59 @@ function Life({ summary, city, cityName, birth }: { summary: Summary; city: stri
           })()}
         </>
       )}
+    </Card>
+  )
+}
+
+/** Every city's mean temperature in 1961–1990 and 2016–2025 on one axis, the chosen city highlighted. */
+function WarmerThan({ summary, meta, city }: { summary: Summary; meta: Meta; city: string }) {
+  const { t, lang } = useI18n()
+  const tk = useTokens()
+  const rows = meta.cities.map((c) => ({
+    id: c.id,
+    name: c.name,
+    then: rangeMean(summary, summary.cities[c.id].tmean, 1961, 1990),
+    now: rangeMean(summary, summary.cities[c.id].tmean, 2016, 2025),
+  }))
+  const me = rows.find((r) => r.id === city)!
+  const top = rows.reduce((a, b) => (b.then > a.then ? b : a))
+  const allWarmer = Math.min(...rows.map((r) => r.now)) > top.then
+  const k = rows.filter((r) => me.now > r.then).length
+  const thenLabel = '1961–1990'
+  const nowLabel = '2016–2025'
+  const dots = (key: 'then' | 'now', color: string) => ({
+    type: 'scatter' as const,
+    mode: 'markers' as const,
+    x: rows.map((r) => r[key]),
+    y: rows.map(() => (key === 'then' ? thenLabel : nowLabel)),
+    text: rows.map((r) => r.name),
+    marker: {
+      color: rows.map((r) => (r.id === city ? tk.ink : color)),
+      size: rows.map((r) => (r.id === city ? 16 : 11)),
+      line: { color: tk.surface, width: 1 },
+    },
+    hovertemplate: '%{text}: %{x:.1f} °C<extra></extra>',
+    showlegend: false,
+  })
+  return (
+    <Card title={t('day.warmer')}>
+      <ul className="facts">
+        <li>
+          <strong>{allWarmer ? t('day.warmerAll', { n: rows.length }) : t('day.warmerSome', { city: me.name, k, n: rows.length })}</strong>
+        </li>
+        <li>{t('day.warmerText', { city: me.name, a: num(lang, me.then), b: num(lang, me.now), top: top.name, t: num(lang, top.then) })}</li>
+      </ul>
+      <Chart
+        data={[dots('then', tk.cool), dots('now', tk.warm)]}
+        layout={{
+          xaxis: { ticksuffix: ' °C', zeroline: false },
+          yaxis: { categoryorder: 'array', categoryarray: [nowLabel, thenLabel] },
+          hovermode: 'closest',
+          shapes: [{ type: 'line', x0: top.then, x1: top.then, y0: 0, y1: 1, yref: 'paper', line: { color: tk.muted, dash: 'dot', width: 1 } }],
+        }}
+        height={200}
+        label={t('day.warmerChart')}
+      />
     </Card>
   )
 }
