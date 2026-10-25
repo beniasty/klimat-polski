@@ -911,3 +911,23 @@ h2.section-title {
   font-size: 13px;
   font-weight: 400;
 }
+/* Embed code generator (About page). */
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 18px;
+  align-items: flex-end;
+}
+.embed-code {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  font: 12px/1.4 ui-monospace, Consolas, monospace;
+  color: var(--ink);
+  background: var(--bg, transparent);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  resize: vertical;
+}

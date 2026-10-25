@@ -312,6 +312,12 @@ const pl = {
   'about.author': 'Autor',
   'about.donate': 'Strona jest darmowa i bez reklam. Jeśli Ci się przydała, możesz postawić autorowi kawę',
   'ui.donate': 'Postaw kawę',
+  'embed.title': 'Osadź paski ocieplenia na swojej stronie',
+  'embed.note': 'Wklej kod na stronie szkoły, bloga lub urzędu. Widżet pobiera tylko dane klimatyczne z tej strony, bez cookies i bez liczenia odwiedzin.',
+  'embed.preview': 'Podgląd widżetu',
+  'embed.code': 'Kod do wklejenia',
+  'embed.copy': 'Kopiuj kod',
+  'embed.copied': 'Skopiowano',
   'about.privacy': 'Odwiedziny liczymy anonimowo przez GoatCounter: bez cookies i bez danych osobowych.',
 } as const
 
@@ -611,6 +617,12 @@ const en: Dict = {
   'about.author': 'Author',
   'about.donate': 'The site is free and has no ads. If you found it useful, you can buy the author a coffee',
   'ui.donate': 'Buy me a coffee',
+  'embed.title': 'Embed the warming stripes on your site',
+  'embed.note': 'Paste the code into a school, blog or council website. The widget only loads climate data from this site, with no cookies and no visit counting.',
+  'embed.preview': 'Widget preview',
+  'embed.code': 'Code to paste',
+  'embed.copy': 'Copy code',
+  'embed.copied': 'Copied',
   'about.privacy': 'Visits are counted anonymously with GoatCounter: no cookies and no personal data.',
 }
 
