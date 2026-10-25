@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { useI18n, type Key } from '../lib/i18n.tsx'
-import { param, useRoute } from '../lib/router.ts'
+import { href, param, useRoute } from '../lib/router.ts'
 import { loadMeta, loadSummary, rangeMean, useAsync, useSeries, type Meta, type Summary } from '../lib/data.ts'
-import { dayStats, METRIC_BY_ID, type Series } from '../lib/metrics.ts'
+import { annualCycle, dayStats, METRIC_BY_ID, type Series } from '../lib/metrics.ts'
 import { dateLabel, num, ordinal, withUnit } from '../lib/format.ts'
 import { useTokens } from '../lib/theme.ts'
 import { Chart } from '../components/Chart.tsx'
@@ -70,6 +70,12 @@ function DayCard({ s, date, meta, cityName }: { s: Series; date: string; meta: M
   const { t, lang } = useI18n()
   const tk = useTokens()
   const st = useMemo(() => dayStats(s, date), [s, date])
+  // Typical high on this calendar day (7-day smoothed), then and now; 29 Feb counts as 28 Feb.
+  const typical = useMemo(() => {
+    const [, m, d] = date.split('-').map(Number)
+    const k = Math.min((Date.UTC(2001, m - 1, d === 29 && m === 2 ? 28 : d) - Date.UTC(2001, 0, 1)) / 86_400_000, 364)
+    return { then: annualCycle(s, 'tmax', 1961, 1990)[k], now: annualCycle(s, 'tmax', 2016, 2025)[k] }
+  }, [s, date])
   if (!st || Number.isNaN(st.values.tmax)) {
     return (
       <Card>
@@ -112,6 +118,10 @@ function DayCard({ s, date, meta, cityName }: { s: Series; date: string; meta: M
       <ul className="facts">
         <li>{st.rank === 1 ? t('day.rankFirst', { date: dayName, n: st.ofYears }) : t('day.rank', { rank: ordinal(lang, st.rank), date: dayName, n: st.ofYears })}</li>
         <li>{t('day.vsNormal', { d: num(lang, v.tmean - st.normal.tmean, 1, true) })}</li>
+        <li>
+          {t('day.typical', { date: dayName, a: num(lang, typical.then), b: num(lang, typical.now) })}{' '}
+          <a href={href('compare', { c: s.id, f: 'tmax' })}>{t('day.typicalLink')}</a>
+        </li>
         <li>
           {t('day.record', {
             hi: num(lang, st.recordHigh.value),
