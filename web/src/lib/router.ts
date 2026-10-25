@@ -4,7 +4,7 @@ import { useCallback, useSyncExternalStore } from 'react'
  * Tiny hash router: "#/explore?c=warszawa&m=tmean".
  * The whole UI state lives in the URL, so every view can be shared as a link.
  */
-export const PAGES = ['overview', 'month', 'explore', 'map', 'compare', 'nature', 'records', 'day', 'about', 'quiz'] as const
+export const PAGES = ['overview', 'month', 'explore', 'map', 'compare', 'nature', 'records', 'air', 'day', 'about', 'quiz'] as const
 /** Pages in the main menu (the quiz is linked from the Overview instead). */
 export const NAV_PAGES = PAGES.filter((p) => p !== 'quiz')
 export type Page = (typeof PAGES)[number]

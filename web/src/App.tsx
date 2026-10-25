@@ -17,6 +17,7 @@ const pages: Record<Page, React.LazyExoticComponent<() => React.JSX.Element>> = 
   compare: lazy(() => import('./pages/Compare.tsx')),
   nature: lazy(() => import('./pages/Nature.tsx')),
   records: lazy(() => import('./pages/Records.tsx')),
+  air: lazy(() => import('./pages/Air.tsx')),
   day: lazy(() => import('./pages/YourDay.tsx')),
   about: lazy(() => import('./pages/About.tsx')),
   quiz: lazy(() => import('./pages/Quiz.tsx')),

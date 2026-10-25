@@ -101,9 +101,14 @@ def download_daily(lat: float, lon: float, start: str, end: str, variables: list
         "daily": ",".join(variables or DAILY_VARS),
         "timezone": "Europe/Warsaw",
     }
+    return pd.DataFrame(_get_json(API_URL, params)["daily"])
+
+
+def _get_json(url: str, params: dict) -> dict:
+    """GET with retries on network errors and rate limits (Open-Meteo free tier)."""
     for attempt in range(200):
         try:
-            resp = requests.get(API_URL, params=params, timeout=180)
+            resp = requests.get(url, params=params, timeout=180)
         except requests.RequestException as e:  # network hiccup: wait and retry
             print(f"  błąd sieci ({type(e).__name__}), ponawiam za minutę", flush=True)
             time.sleep(60)
@@ -118,8 +123,34 @@ def download_daily(lat: float, lon: float, start: str, end: str, variables: list
             time.sleep(wait)
             continue
         resp.raise_for_status()
-        return pd.DataFrame(resp.json()["daily"])
+        return resp.json()
     raise RuntimeError("Open-Meteo kept rate-limiting the request")
+
+
+# --- air quality (CAMS European reanalysis/analyses via Open-Meteo, from 2013) ---------------
+
+AIR_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
+AIR_VARS = {"pm2_5": "pm25", "pm10": "pm10", "nitrogen_dioxide": "no2", "ozone": "o3"}
+AIR_START, AIR_END = "2013-01-01", "2025-12-31"
+
+
+def air_path(city: str) -> Path:
+    return RAW_DIR / "air" / f"{slug(city)}.csv"
+
+
+def fetch_air(city: str, force: bool = False) -> Path:
+    """Hourly CAMS pollutants for 2013–2025 -> daily means (µg/m³), cached as CSV."""
+    path = air_path(city)
+    if path.exists() and not force:
+        return path
+    lat, lon = ALL_CITIES[city]
+    params = {"latitude": lat, "longitude": lon, "hourly": ",".join(AIR_VARS), "start_date": AIR_START, "end_date": AIR_END, "timezone": "Europe/Warsaw"}
+    hourly = pd.DataFrame(_get_json(AIR_URL, params)["hourly"]).rename(columns=AIR_VARS)
+    hourly["date"] = hourly["time"].str[:10]
+    daily = hourly.groupby("date")[list(AIR_VARS.values())].mean().round(2).reset_index()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    daily.to_csv(path, index=False)
+    return path
 
 
 def fetch_city(city: str, force: bool = False) -> Path:

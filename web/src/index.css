@@ -959,3 +959,10 @@ h2.section-title {
   border-radius: var(--radius);
   resize: vertical;
 }
+/* Air quality level badge (EEA colours). */
+.air-badge {
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
