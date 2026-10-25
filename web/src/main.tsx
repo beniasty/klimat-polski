@@ -7,6 +7,13 @@ import { startAnalytics } from './lib/analytics.ts'
 
 startAnalytics()
 
+// Offline support (public/sw.js); production builds only, so dev reloads stay fresh.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js').catch(() => {
+    /* not supported or blocked: the site works without it */
+  })
+}
+
 // After a deploy, a tab opened earlier asks for page chunks that no longer exist.
 // Reload once to pick up the new build (the timestamp guard stops reload loops).
 window.addEventListener('vite:preloadError', (event) => {
