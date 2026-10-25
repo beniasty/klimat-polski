@@ -69,3 +69,28 @@ test('no horizontal scrolling on the overview', async ({ page }) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)
   expect(overflow).toBe(false)
 })
+
+test('works offline after the first visit (service worker)', async ({ page, context }) => {
+  await page.goto('/#/overview')
+  await expect(page.locator('.kpis')).toBeVisible()
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready
+    // The first visit is not controlled yet; reload once so the worker caches the page and data.
+    if (!navigator.serviceWorker.controller) await new Promise((r) => navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }))
+  })
+  await page.reload()
+  await expect(page.locator('.kpis')).toBeVisible()
+  await context.setOffline(true)
+  await page.reload()
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(/cieplejsza/)
+  await expect(page.locator('.kpis')).toBeVisible()
+  await context.setOffline(false)
+})
+
+test('has an installable web app manifest', async ({ request }) => {
+  const res = await request.get('/manifest.webmanifest')
+  expect(res.ok()).toBe(true)
+  const m = await res.json()
+  expect(m.icons.map((i: { sizes: string }) => i.sizes)).toEqual(expect.arrayContaining(['192x192', '512x512']))
+  expect((await request.get('/' + m.icons[0].src)).ok()).toBe(true)
+})

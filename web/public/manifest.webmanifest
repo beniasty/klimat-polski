@@ -1,0 +1,16 @@
+{
+  "name": "Klimat Polski 1951–2025",
+  "short_name": "Klimat Polski",
+  "description": "Jak zmieniał się klimat w 18 miastach wojewódzkich od 1951 roku.",
+  "lang": "pl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fcfcfb",
+  "theme_color": "#fcfcfb",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
