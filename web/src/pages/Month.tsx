@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { useI18n } from '../lib/i18n.tsx'
 import { useRoute } from '../lib/router.ts'
-import { loadMeta, loadMonthly, useAsync, type Meta } from '../lib/data.ts'
+import { loadMeta, loadMonthly, loadSummary, useAsync, type Meta } from '../lib/data.ts'
 import { extreme, indexOf, lastComplete, monthStat, parseMonth, polandSeries, sameMonth, ymString, type Monthly, type YearMonth } from '../lib/monthly.ts'
 import { dateLabel, monthNames, num, ordinal } from '../lib/format.ts'
 import { stripeColor } from '../lib/colors.ts'
@@ -9,17 +9,39 @@ import { useTokens } from '../lib/theme.ts'
 import { Chart } from '../components/Chart.tsx'
 import { DataTable, type Column } from '../components/DataTable.tsx'
 import { Card, PageHead, Ready } from '../components/Status.tsx'
-import { Field, FilterBar } from '../components/Controls.tsx'
+import { Field, FilterBar, Segmented } from '../components/Controls.tsx'
+import { YearView } from './Year.tsx'
 
+/** Month view by default; `v=year` switches to the year in review. */
 export default function Month() {
   const { t } = useI18n()
+  const { params, setParams } = useRoute()
   const meta = useAsync(loadMeta, 'meta')
   const monthly = useAsync(loadMonthly, 'monthly')
+  const summary = useAsync(loadSummary, 'summary')
+  const mode = params.get('v') === 'year' ? 'year' : 'month'
+  const modeSwitch = (
+    <Segmented
+      label={t('month.mode')}
+      value={mode}
+      onChange={(v) => setParams({ v: v === 'year' ? 'year' : null, m: null, y: null })}
+      options={[
+        { value: 'month', label: t('month.mode.month') },
+        { value: 'year', label: t('month.mode.year') },
+      ]}
+    />
+  )
   return (
     <>
-      <PageHead title={t('month.title')} intro={t('month.intro')} />
-      <Ready loading={meta.loading || monthly.loading} error={meta.error ?? monthly.error}>
-        {() => <Content meta={meta.data!} m={monthly.data!} />}
+      <PageHead title={t(mode === 'year' ? 'year.title' : 'month.title')} intro={t(mode === 'year' ? 'year.intro' : 'month.intro')} />
+      <Ready loading={meta.loading || monthly.loading || summary.loading} error={meta.error ?? monthly.error ?? summary.error}>
+        {() =>
+          mode === 'year' ? (
+            <YearView meta={meta.data!} summary={summary.data!} m={monthly.data!} modeSwitch={modeSwitch} />
+          ) : (
+            <Content meta={meta.data!} m={monthly.data!} modeSwitch={modeSwitch} />
+          )
+        }
       </Ready>
     </>
   )
@@ -38,7 +60,7 @@ interface Row {
   min: number | null
 }
 
-function Content({ meta, m }: { meta: Meta; m: Monthly }) {
+function Content({ meta, m, modeSwitch }: { meta: Meta; m: Monthly; modeSwitch: ReactNode }) {
   const { t, lang } = useI18n()
   const tk = useTokens()
   const { params, setParams } = useRoute()
@@ -100,6 +122,7 @@ function Content({ meta, m }: { meta: Meta; m: Monthly }) {
   return (
     <>
       <FilterBar>
+        {modeSwitch}
         <Field label={t('month.pick')}>
           <select value={mo} onChange={(e) => pick([y, Number(e.target.value)])}>
             {names.map((n, k) => (
