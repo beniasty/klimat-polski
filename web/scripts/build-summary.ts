@@ -7,7 +7,7 @@
  */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { aggregate, decode, METRICS, SEASONS, type RawDaily } from '../src/lib/metrics.ts'
+import { aggregate, decode, METRICS, SEASONS, topDays, type Field, type RawDaily } from '../src/lib/metrics.ts'
 import type { Monthly, MonthlyField } from '../src/lib/monthly.ts'
 
 const DATA = join(import.meta.dirname, '..', 'public', 'data')
@@ -65,3 +65,27 @@ for (const city of meta.cities as { id: string }[]) {
 }
 writeFileSync(join(DATA, 'monthly.json'), JSON.stringify(monthly))
 console.log('monthly.json written')
+
+// Poland-wide records: the most extreme days over all cities, one entry per date
+// (a heatwave hitting five cities on the same day counts once, with its top city).
+type Rec = { city: string; date: string; value: number }
+const RECORDS: Record<string, [Field, 'desc' | 'asc']> = { hottest: ['tmax', 'desc'], coldest: ['tmin', 'asc'], wettest: ['precip', 'desc'] }
+const pools: Record<string, Rec[]> = { hottest: [], coldest: [], wettest: [] }
+for (const city of meta.cities as { id: string }[]) {
+  const s = decode(readRaw(city.id))
+  for (const [key, [field, order]] of Object.entries(RECORDS)) {
+    for (const d of topDays(s, field, 30, order)) pools[key].push({ city: city.id, date: d.date, value: d.value })
+  }
+}
+const records: Record<string, Rec[]> = {}
+for (const [key, [, order]] of Object.entries(RECORDS)) {
+  const sign = order === 'desc' ? -1 : 1
+  const seen = new Set<string>()
+  records[key] = pools[key]
+    .sort((a, b) => sign * (a.value - b.value) || a.date.localeCompare(b.date))
+    .filter((r) => !seen.has(r.date) && seen.add(r.date))
+    .slice(0, 10)
+    .map((r) => ({ ...r, value: round(r.value) }))
+}
+writeFileSync(join(DATA, 'records.json'), JSON.stringify(records))
+console.log('records.json written')

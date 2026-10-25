@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useI18n } from '../lib/i18n.tsx'
 import { href, param, useRoute } from '../lib/router.ts'
-import { loadMeta, useAsync, useSeries, type Meta } from '../lib/data.ts'
+import { loadMeta, loadRecords, loadSummary, meanOfCities, rangeMean, toPoints, useAsync, useSeries, type DayRecord, type Meta } from '../lib/data.ts'
 import { aggregate, meanBetween, monthlyAnomalies, topDays, type DayValue, type Field, type Series } from '../lib/metrics.ts'
 import { dateLabel, monthNames, num } from '../lib/format.ts'
 import { heatmapColorscale } from '../lib/colors.ts'
@@ -31,6 +31,7 @@ function Content({ meta }: { meta: Meta }) {
   const series = useSeries([city])
   return (
     <>
+      <PolandRecords meta={meta} />
       <FilterBar>
         <CitySelect cities={meta.cities} value={city} onChange={(c) => setParams({ c })} />
         <YearRange value={range} min={y0} max={y1} onChange={(r) => setParams({ y: r[0] === y0 && r[1] === y1 ? null : `${r[0]}-${r[1]}` })} />
@@ -38,6 +39,43 @@ function Content({ meta }: { meta: Meta }) {
       <Ready loading={series.loading} error={series.error}>
         {() => <Results s={series.data![0]} range={range} cityName={meta.cities.find((c) => c.id === city)!.name} />}
       </Ready>
+    </>
+  )
+}
+
+/** Records over all cities: extreme days (one per date) and Poland's warmest and coldest years. */
+function PolandRecords({ meta }: { meta: Meta }) {
+  const { t, lang } = useI18n()
+  const records = useAsync(loadRecords, 'records')
+  const summary = useAsync(loadSummary, 'summary')
+  if (!records.data || !summary.data) return null
+  const name = (id: string) => meta.cities.find((c) => c.id === id)?.name ?? id
+  const items = (list: DayRecord[]) =>
+    list.map((d) => ({
+      label: (
+        <>
+          <a href={href('day', { c: d.city, d: d.date })}>{dateLabel(lang, d.date)}</a>
+          <span className="muted sub-label">{name(d.city)}</span>
+        </>
+      ),
+      value: d.value,
+    }))
+  const pl = meanOfCities(summary.data, 'tmean')
+  const base = rangeMean(summary.data, pl, 1961, 1990)
+  const years = toPoints(summary.data, pl).map((p) => ({ label: p.year, value: p.value - base }))
+  const warm = [...years].sort((a, b) => b.value - a.value).slice(0, 10)
+  const fmt = (v: number) => num(lang, v)
+  return (
+    <>
+      <h2 className="section-title">{t('rec.poland')}</h2>
+      <p className="note">{t('rec.polandNote', { n: meta.cities.length })}</p>
+      <div className="grid-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+        <TopList title={t('rec.hottest')} items={items(records.data.hottest)} unit="°C" format={fmt} />
+        <TopList title={t('rec.coldest')} items={items(records.data.coldest)} unit="°C" format={fmt} />
+        <TopList title={t('rec.wettest')} items={items(records.data.wettest)} unit="mm" format={fmt} />
+        <TopList title={t('rec.warmYears')} items={warm} unit="°C" format={(v) => num(lang, v, 1, true)} />
+      </div>
+      <h2 className="section-title">{t('rec.cityTitle')}</h2>
     </>
   )
 }

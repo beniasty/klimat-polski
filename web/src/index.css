@@ -898,3 +898,16 @@ h3.sub {
     grid-template-columns: repeat(4, 1fr);
   }
 }
+/* Section heading between groups of cards (e.g. Poland vs one city on Records). */
+h2.section-title {
+  font-size: 20px;
+  margin: 28px 0 6px;
+}
+.muted {
+  color: var(--muted);
+}
+.sub-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+}
