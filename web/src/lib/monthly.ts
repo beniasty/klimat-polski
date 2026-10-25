@@ -68,9 +68,13 @@ export interface MonthStat {
 }
 
 export function monthStat(m: Monthly, arr: (number | null)[], [y, mo]: YearMonth, baseline: [number, number]): MonthStat | null {
-  const value = arr[indexOf(m, [y, mo])]
-  if (value === null || value === undefined) return null
-  const all = sameMonth(m, arr, mo)
+  return rankStat(sameMonth(m, arr, mo), y, baseline)
+}
+
+/** Value of one year among all years: normal over the baseline and ranks from both ends. */
+export function rankStat(all: { year: number; value: number }[], year: number, baseline: [number, number]): MonthStat | null {
+  const value = all.find((d) => d.year === year)?.value
+  if (value === undefined) return null
   const base = all.filter((d) => d.year >= baseline[0] && d.year <= baseline[1])
   const normal = base.reduce((a, d) => a + d.value, 0) / base.length
   const rank = 1 + all.filter((d) => d.value > value).length

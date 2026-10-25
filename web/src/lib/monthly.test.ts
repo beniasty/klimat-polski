@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { extreme, indexOf, lastComplete, monthAt, monthStat, parseMonth, polandSeries, sameMonth, ymString, type Monthly } from './monthly.ts'
+import { extreme, indexOf, rankStat, lastComplete, monthAt, monthStat, parseMonth, polandSeries, sameMonth, ymString, type Monthly } from './monthly.ts'
 
 // Two cities, Jan 2000 – Mar 2002 (27 months); March 2002 is missing for city b.
 const months = 27
@@ -46,5 +46,12 @@ describe('monthly', () => {
   it('picks the city with the extreme value', () => {
     expect(extreme(m, 'tmax', 0, 'max')).toEqual({ city: 'b', value: 9 })
     expect(extreme(m, 'tmin', 0, 'min')).toEqual({ city: 'a', value: -5 })
+  })
+
+  it('ranks a year among all years from both ends', () => {
+    const pts = [2000, 2001, 2002, 2003].map((year, k) => ({ year, value: [5, 9, 7, 9][k] }))
+    expect(rankStat(pts, 2002, [2000, 2001])).toEqual({ value: 7, normal: 7, rank: 3, rankLow: 2, ofYears: 4 })
+    expect(rankStat(pts, 2003, [2000, 2001])?.rank).toBe(1) // ties share the rank
+    expect(rankStat(pts, 1999, [2000, 2001])).toBeNull()
   })
 })
