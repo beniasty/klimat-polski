@@ -46,6 +46,7 @@ uv run python scripts/build_report.py                  # report/index.html (self
 - `src/App.tsx` lazily loads one page per route from `src/pages/`; `src/components/Chart.tsx` lazily loads plotly.js (~480 kB gzip chunk, expected).
 - `embed.html` + `src/embed.ts`: a second Vite page (no React, no analytics) with a city's warming stripes for `<iframe>` embedding; the About page generates the embed code.
 - PWA: `public/manifest.webmanifest`, icons drawn by `build-og.ts`, and a hand-written `public/sw.js` (network first for pages and data, cache first for hashed `/assets/`), registered in `main.tsx` for production builds. Bump `VERSION` in `sw.js` when its caching rules change.
+- Air page (`src/pages/Air.tsx`, `src/lib/air.ts`): live EAQI and 4-day forecast fetched by the browser from Open-Meteo's air-quality API (CORS allowed, mocked in E2E); long-term comparisons from `public/data/air.json` (`scripts/export_air.py`, CAMS daily means 2013–2025 in `data/raw/air/`, fetched with `fetch_all_cities.py --air`). CAMS joins several model products, so year-to-year air trends are deliberately not shown; air data is not part of the weekly refresh.
 - `vite.config.ts` uses `base: './'` so the site works under the GitHub Pages sub-path; build data URLs from `import.meta.env.BASE_URL`.
 
 ## Method conventions

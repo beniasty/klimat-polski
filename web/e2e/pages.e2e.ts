@@ -4,6 +4,15 @@ import { expect, test, type Page } from '@playwright/test'
 test.beforeEach(async ({ page }) => {
   await page.route('**/gc.zgo.at/**', (route) => route.abort())
   await page.route('**/*.goatcounter.com/**', (route) => route.abort())
+  // Live air quality: a fixed answer, so tests don't depend on Open-Meteo.
+  await page.route('**/air-quality-api.open-meteo.com/**', (route) =>
+    route.fulfill({
+      json: {
+        current: { time: '2026-10-25T14:00', european_aqi: 45, pm2_5: 21, pm10: 30, nitrogen_dioxide: 12, ozone: 40 },
+        hourly: { time: ['2026-10-25T14:00', '2026-10-25T15:00'], european_aqi: [45, 62] },
+      },
+    }),
+  )
 })
 
 /** Collects uncaught errors and console errors (except blocked third-party requests). */
@@ -25,6 +34,7 @@ const PAGES: [string, RegExp][] = [
   ['#/compare', /Porównaj okresy/],
   ['#/nature', /Kalendarz przyrody/],
   ['#/records', /Rekordy/],
+  ['#/air', /Jakość powietrza/],
   ['#/day', /Twój dzień/],
   ['#/about', /O danych/],
 ]
@@ -129,4 +139,13 @@ test('has an installable web app manifest', async ({ request }) => {
   const m = await res.json()
   expect(m.icons.map((i: { sizes: string }) => i.sizes)).toEqual(expect.arrayContaining(['192x192', '512x512']))
   expect((await request.get('/' + m.icons[0].src)).ok()).toBe(true)
+})
+
+test('air page shows live conditions and the city ranking', async ({ page }) => {
+  const errors = watchErrors(page)
+  await page.goto('/#/air?c=katowice')
+  await expect(page.locator('.air-badge')).toHaveText('umiarkowana') // EAQI 45 from the mocked API
+  await expect(page.getByText('21 µg/m³')).toBeVisible()
+  await expect(page.locator('tbody tr').first()).toContainText('Katowice') // highest PM2.5 first
+  expect(errors).toEqual([])
 })
