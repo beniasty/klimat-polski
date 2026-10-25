@@ -69,3 +69,23 @@ test('no horizontal scrolling on the overview', async ({ page }) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)
   expect(overflow).toBe(false)
 })
+
+test('embed widget shows stripes for a city, in English, and falls back to Poland', async ({ page }) => {
+  const errors = watchErrors(page)
+  await page.goto('/embed.html?c=krakow&lang=en')
+  await expect(page.locator('#title')).toHaveText(/^Kraków, 1951–\d{4}$/)
+  await expect(page.locator('#stripes span')).toHaveCount(75)
+  await expect(page.locator('#link')).toHaveAttribute('href', /#\/overview\?c=krakow$/)
+  await expect(page.locator('#stripes')).toHaveAttribute('aria-label', /^Warming stripes/)
+  await page.goto('/embed.html?c=<script>')
+  await expect(page.locator('#title')).toHaveText(/^Polska, /)
+  expect(errors).toEqual([])
+})
+
+test('embed code generator updates the code for the chosen city', async ({ page }) => {
+  await page.goto('/#/about')
+  const card = page.locator('section.card', { hasText: 'Osadź paski' })
+  await card.getByLabel('Miasto').selectOption('gdansk')
+  await expect(card.locator('textarea')).toHaveValue(/embed\.html\?c=gdansk/)
+  await expect(card.locator('iframe')).toHaveAttribute('src', /c=gdansk/)
+})
