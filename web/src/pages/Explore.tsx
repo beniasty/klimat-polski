@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useI18n, type Key } from '../lib/i18n.tsx'
 import { param, useRoute } from '../lib/router.ts'
 import { loadMeta, useAsync, useSeries, type Meta } from '../lib/data.ts'
-import { aggregate, isPeriod, linearTrend, meanBetween, METRIC_BY_ID, type Period, type Series, type YearValue } from '../lib/metrics.ts'
+import { aggregate, isPeriod, linearTrend, meanBetween, METRIC_BY_ID, needsExtra, type Period, type Series, type YearValue } from '../lib/metrics.ts'
 import { monthNames, num, withUnit } from '../lib/format.ts'
 import { useTokens } from '../lib/theme.ts'
 import { yAxisFor, yearlyTraces } from '../lib/chartHelpers.ts'
@@ -51,7 +51,7 @@ function Content({ meta }: { meta: Meta }) {
   const showTrend = param.str(params, 'tr', '0') === '1'
 
   const ids = slots.filter(Boolean)
-  const series = useSeries(ids)
+  const series = useSeries(ids, needsExtra(metric))
   const name = (id: string) => meta.cities.find((c) => c.id === id)?.name ?? id
 
   const thr = threshold ?? (metric.kind === 'daily' ? metric.threshold : undefined)

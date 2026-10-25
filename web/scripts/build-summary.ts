@@ -16,10 +16,15 @@ const [first, last] = meta.fullYears as [number, number]
 const years = Array.from({ length: last - first + 1 }, (_, i) => first + i)
 
 const round = (v: number) => Math.round(v * 100) / 100
+// Base fields plus ET0/sunshine from daily-extra/ (all measures need the full series here).
+const readRaw = (id: string): RawDaily => ({
+  ...JSON.parse(readFileSync(join(DATA, 'daily', `${id}.json`), 'utf8')),
+  ...JSON.parse(readFileSync(join(DATA, 'daily-extra', `${id}.json`), 'utf8')),
+})
 const cities: Record<string, Record<string, (number | null)[]>> = {}
 
 for (const city of meta.cities as { id: string; name: string }[]) {
-  const raw: RawDaily = JSON.parse(readFileSync(join(DATA, 'daily', `${city.id}.json`), 'utf8'))
+  const raw = readRaw(city.id)
   const s = decode(raw)
   const out: Record<string, (number | null)[]> = {}
   const put = (key: string, rows: { year: number; value: number }[]) => {
@@ -39,12 +44,12 @@ writeFileSync(join(DATA, 'summary.json'), JSON.stringify({ years, cities }))
 console.log('summary.json written')
 
 // Monthly values (complete months only, incl. the current year) for the "Month" page.
-const MONTHLY: Record<MonthlyField, string> = { tmean: 'tmean', precip: 'precip', tmax: 'tmax_abs', tmin: 'tmin_abs' }
+const MONTHLY: Record<MonthlyField, string> = { tmean: 'tmean', precip: 'precip', tmax: 'tmax_abs', tmin: 'tmin_abs', wb: 'water_balance' }
 const lastYear = Number(meta.lastDate.slice(0, 4))
 const months = (lastYear - first) * 12 + Number(meta.lastDate.slice(5, 7))
 const monthly: Monthly = { start: [first, 1], months, cities: {} }
 for (const city of meta.cities as { id: string }[]) {
-  const s = decode(JSON.parse(readFileSync(join(DATA, 'daily', `${city.id}.json`), 'utf8')))
+  const s = decode(readRaw(city.id))
   const out = {} as Monthly['cities'][string]
   for (const [field, metricId] of Object.entries(MONTHLY) as [MonthlyField, string][]) {
     const arr: (number | null)[] = new Array(months).fill(null)

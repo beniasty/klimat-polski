@@ -24,7 +24,9 @@ import pogoda  # noqa: E402
 OUT = pogoda.PROJECT_ROOT / "web" / "public" / "data"
 RECENT_DIR = pogoda.RAW_DIR / "recent"
 GEO_FILE = pogoda.RAW_DIR / "geo" / "ne_50m_admin_0_countries.geojson"
-FIELDS = ["tmax", "tmin", "tmean", "precip", "snow", "et0", "sun"]
+FIELDS = ["tmax", "tmin", "tmean", "precip", "snow"]
+# Only a few measures need these, so they go to daily-extra/ and are loaded on demand.
+EXTRA_FIELDS = ["et0", "sun"]
 
 # Map projection: equirectangular, x scaled by cos(52°) so Poland keeps its shape.
 LAT0 = 52.0
@@ -95,8 +97,11 @@ def main(refresh: bool, no_recent: bool = False) -> None:
         expected = pd.date_range(dates.iloc[0], dates.iloc[-1], freq="D")
         assert len(expected) == len(df), f"{city}: gaps in the daily series"
         cid = pogoda.slug(city)
-        payload = {"id": cid, "start": df["date"].iloc[0], **{f: encode(df[f]) for f in FIELDS}}
-        (OUT / "daily" / f"{cid}.json").write_text(json.dumps(payload, separators=(",", ":")))
+        start = df["date"].iloc[0]
+        for folder, fields in (("daily", FIELDS), ("daily-extra", EXTRA_FIELDS)):
+            payload = {"id": cid, "start": start, **{f: encode(df[f]) for f in fields}}
+            (OUT / folder).mkdir(exist_ok=True)
+            (OUT / folder / f"{cid}.json").write_text(json.dumps(payload, separators=(",", ":")))
         x, y = project(lon, lat, origin)
         cities.append({"id": cid, "name": city, "lat": lat, "lon": lon, "x": round(x, 1), "y": round(y, 1)})
         last_dates.append(df["date"].iloc[-1])

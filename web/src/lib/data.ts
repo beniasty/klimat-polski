@@ -51,7 +51,25 @@ function load<T>(path: string, transform: (json: unknown) => T = (j) => j as T):
 export const loadMeta = () => load<Meta>('meta.json')
 export const loadSummary = () => load<Summary>('summary.json')
 export const loadMonthly = () => load<Monthly>('monthly.json')
-export const loadSeries =(id: string) => load<Series>(`daily/${id}.json`, (j) => decode(j as RawDaily))
+
+const seriesCache = new Map<string, Promise<Series>>()
+/** Daily series of one city; `extra` also loads ET0 and sunshine (daily-extra/). */
+export function loadSeries(id: string, extra = false): Promise<Series> {
+  const key = extra ? `${id}+extra` : id
+  if (!seriesCache.has(key)) {
+    const parts = [load<RawDaily>(`daily/${id}.json`), extra ? load<Partial<RawDaily>>(`daily-extra/${id}.json`) : Promise.resolve({})] as const
+    seriesCache.set(
+      key,
+      Promise.all(parts)
+        .then(([base, more]) => decode({ ...base, ...more }))
+        .catch((e) => {
+          seriesCache.delete(key)
+          throw e
+        }),
+    )
+  }
+  return seriesCache.get(key)!
+}
 
 type Async<T> = { data: T | undefined; error: Error | undefined; loading: boolean }
 
@@ -74,8 +92,8 @@ export function useAsync<T>(loader: () => Promise<T>, key: string): Async<T> {
 }
 
 /** Load several city series at once (in order). */
-export function useSeries(ids: string[]) {
-  return useAsync(() => Promise.all(ids.map(loadSeries)), ids.join(','))
+export function useSeries(ids: string[], extra = false) {
+  return useAsync(() => Promise.all(ids.map((id) => loadSeries(id, extra))), ids.join(',') + (extra ? '+extra' : ''))
 }
 
 /** Average of several yearly arrays, ignoring nulls (used for "Poland" = mean of cities). */
