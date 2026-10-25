@@ -88,6 +88,7 @@ test('embed code generator updates the code for the chosen city', async ({ page 
   await card.getByLabel('Miasto').selectOption('gdansk')
   await expect(card.locator('textarea')).toHaveValue(/embed\.html\?c=gdansk/)
   await expect(card.locator('iframe')).toHaveAttribute('src', /c=gdansk/)
+})
 
 test('works offline after the first visit (service worker)', async ({ page, context }) => {
   await page.goto('/#/overview')
