@@ -52,6 +52,14 @@ export const loadMeta = () => load<Meta>('meta.json')
 export const loadSummary = () => load<Summary>('summary.json')
 export const loadMonthly = () => load<Monthly>('monthly.json')
 
+export interface DayRecord {
+  city: string
+  date: string
+  value: number
+}
+/** Poland-wide top 10 days (one per date), built by scripts/build-summary.ts. */
+export const loadRecords = () => load<Record<'hottest' | 'coldest' | 'wettest', DayRecord[]>>('records.json')
+
 const seriesCache = new Map<string, Promise<Series>>()
 /** Daily series of one city; `extra` also loads ET0 and sunshine (daily-extra/). */
 export function loadSeries(id: string, extra = false): Promise<Series> {

@@ -212,7 +212,10 @@ const pl = {
 
   // records
   'rec.title': 'Rekordy',
-  'rec.intro': 'Najbardziej ekstremalne dni i lata w wybranym mieście oraz mapa ciepła: każdy kwadrat to jeden miesiąc.',
+  'rec.poland': 'Rekordy Polski: wszystkie miasta',
+  'rec.polandNote': 'Najbardziej skrajne dni w {n} miastach od 1951 (każda data raz, z miastem, w którym było najbardziej skrajnie) i najcieplejsze lata dla średniej miast. To wartości z reanalizy ERA5, nie pomiary stacji; ostatnie tygodnie są wstępne.',
+  'rec.cityTitle': 'Rekordy wybranego miasta',
+  'rec.intro': 'Najbardziej ekstremalne dni i lata w całej Polsce i w wybranym mieście oraz mapa ciepła: każdy kwadrat to jeden miesiąc.',
   'rec.hottest': 'Najwyższe temperatury',
   'rec.coldest': 'Najniższe temperatury',
   'rec.wettest': 'Największe opady dobowe',
@@ -509,7 +512,10 @@ const en: Dict = {
   'nat.indicator': 'Indicator',
   'nat.shift': 'Average in 1961–1990: {a}; in 2016–2025: {b}.',
   'rec.title': 'Records',
-  'rec.intro': 'The most extreme days and years in the chosen city, plus a heat map where each square is one month.',
+  'rec.poland': 'Poland’s records: all cities',
+  'rec.polandNote': 'The most extreme days in {n} cities since 1951 (each date once, with the city where it was most extreme) and the warmest years for the mean of the cities. These are ERA5 reanalysis values, not station measurements; the last weeks are preliminary.',
+  'rec.cityTitle': 'Records for the chosen city',
+  'rec.intro': 'The most extreme days and years across Poland and in the chosen city, plus a heat map where each square is one month.',
   'rec.hottest': 'Highest temperatures',
   'rec.coldest': 'Lowest temperatures',
   'rec.wettest': 'Largest daily precipitation',
