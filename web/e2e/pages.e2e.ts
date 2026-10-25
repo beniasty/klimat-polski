@@ -69,3 +69,19 @@ test('no horizontal scrolling on the overview', async ({ page }) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)
   expect(overflow).toBe(false)
 })
+
+test('quiz: a full round ends with a score and can restart', async ({ page }) => {
+  const errors = watchErrors(page)
+  await page.goto('/#/overview')
+  await page.getByRole('link', { name: /Quiz/ }).click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Quiz klimatyczny')
+  for (let i = 0; i < 6; i++) {
+    await page.locator('.quiz-option').first().click()
+    await expect(page.locator('.quiz-feedback')).toBeVisible()
+    await page.locator('.quiz-feedback .btn').click()
+  }
+  await expect(page.locator('.card h2')).toHaveText(/^Wynik: \d z 6$/)
+  await page.getByRole('button', { name: 'Nowa runda' }).click()
+  await expect(page.locator('.card h2')).toHaveText('Pytanie 1 z 6')
+  expect(errors).toEqual([])
+})
