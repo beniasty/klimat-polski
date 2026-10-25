@@ -183,6 +183,9 @@ const pl = {
 
   // compare
   'cmp.title': 'Porównaj okresy',
+  'cmp.decades': 'Wszystkie miary w kolejnych dekadach',
+  'cmp.decadesNote': 'Średnie z lat danej dekady; pierwsza ({a}) i ostatnia ({b}) są niepełne. Daty, np. początek wiosny, to średni dzień roku.',
+  'cmp.measure': 'Miara',
   'cmp.intro': 'Dwa okresy (lub dwa pojedyncze lata) obok siebie. Gdy klimat się ociepla, cały „dzwon” rozkładu przesuwa się w prawo.',
   'cmp.a': 'Okres A',
   'cmp.b': 'Okres B',
@@ -493,6 +496,9 @@ const en: Dict = {
   'map.legendHigh': 'more',
   'map.click': 'Click a city to open it in the explorer.',
   'cmp.title': 'Compare periods',
+  'cmp.decades': 'Every measure decade by decade',
+  'cmp.decadesNote': 'Means over the years of each decade; the first ({a}) and last ({b}) are incomplete. Dates such as the start of spring are the mean day of the year.',
+  'cmp.measure': 'Measure',
   'cmp.intro': 'Two periods (or two single years) side by side. As the climate warms, the whole “bell” of the distribution moves to the right.',
   'cmp.a': 'Period A',
   'cmp.b': 'Period B',

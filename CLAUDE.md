@@ -45,6 +45,7 @@ uv run python scripts/build_report.py                  # report/index.html (self
 - `src/lib/i18n.tsx`: Polish/English dictionaries. `pl` is the source of truth (`Key = keyof typeof pl`); `en` is typed `Dict`, so a key added to `pl` must be added to `en` or `tsc` fails. Use `t(key, vars)` with `{var}` placeholders.
 - `src/App.tsx` lazily loads one page per route from `src/pages/`; `src/components/Chart.tsx` lazily loads plotly.js (~480 kB gzip chunk, expected).
 - `embed.html` + `src/embed.ts`: a second Vite page (no React, no analytics) with a city's warming stripes for `<iframe>` embedding; the About page generates the embed code.
+- PWA: `public/manifest.webmanifest`, icons drawn by `build-og.ts`, and a hand-written `public/sw.js` (network first for pages and data, cache first for hashed `/assets/`), registered in `main.tsx` for production builds. Bump `VERSION` in `sw.js` when its caching rules change.
 - `vite.config.ts` uses `base: './'` so the site works under the GitHub Pages sub-path; build data URLs from `import.meta.env.BASE_URL`.
 
 ## Method conventions
