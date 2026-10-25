@@ -3,7 +3,7 @@ import { useI18n } from '../lib/i18n.tsx'
 import { useRoute } from '../lib/router.ts'
 import { summarySeries, toPoints, type Meta, type Summary } from '../lib/data.ts'
 import { monthStat, polandSeries, rankStat, type Monthly } from '../lib/monthly.ts'
-import { monthNames, num, ordinal } from '../lib/format.ts'
+import { monthNames, num, ordinal, withUnit } from '../lib/format.ts'
 import { stripeColor } from '../lib/colors.ts'
 import { useTokens } from '../lib/theme.ts'
 import { Chart } from '../components/Chart.tsx'
@@ -93,7 +93,7 @@ export function YearView({ meta, summary, m, modeSwitch }: { meta: Meta; summary
     { key: 'wb', label: t('month.col.wb'), value: (r) => r.wb, render: (r) => `${num(lang, r.wb, 0, true)} mm` },
     { key: 'hot', label: t('year.col.hot'), value: (r) => r.hot, render: (r) => num(lang, r.hot, 0) },
   ]
-  const days = (v: number) => `${num(lang, v, 0)} ${lang === 'pl' ? 'dni' : 'days'}`
+  const days = (v: number) => withUnit(lang, v, 'days')
 
   return (
     <>

@@ -10,6 +10,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write # start the CI workflow for the new PR (see below)
 
 concurrency:
   group: refresh-data
@@ -65,3 +66,5 @@ jobs:
           git commit -m "$title"
           git push origin "$branch"
           gh pr create --base master --head "$branch" --title "$title" --body "Automatic weekly refresh: daily data now ends on $after (was $BEFORE). Tests and build passed in the workflow run. Merging deploys the site."
+          # PRs opened with GITHUB_TOKEN do not trigger other workflows, but a manual dispatch does.
+          gh workflow run ci.yml --ref "$branch"

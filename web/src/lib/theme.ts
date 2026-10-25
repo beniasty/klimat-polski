@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 
 export type ThemeChoice = 'auto' | 'light' | 'dark'
 const KEY = 'klimat-theme'
@@ -85,9 +85,9 @@ const TOKEN_NAMES = {
 
 export function useTokens(): Tokens {
   const dark = useIsDark()
-  const [tokens, setTokens] = useState<Tokens>(() => readTokens())
-  useEffect(() => setTokens(readTokens()), [dark])
-  return tokens
+  // `dark` changes only after the theme attribute is set, so the CSS variables are already current.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(() => readTokens(), [dark])
 }
 
 function readTokens(): Tokens {

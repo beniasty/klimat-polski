@@ -648,6 +648,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 
+// oxlint-disable-next-line react/only-export-components -- the hook belongs with its provider
 export function useI18n(): I18n {
   const v = useContext(Ctx)
   if (!v) throw new Error('useI18n outside provider')
